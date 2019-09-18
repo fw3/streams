@@ -1,0 +1,37 @@
+{
+	"name" : "fw3/streams",
+	"description" : "Flywheel3 framework: Stream library",
+	"type" : "library",
+	"homepage" : "https://ickx.jp",
+	"license" : "MIT",
+	"minimum-stability" : "dev",
+	"authors" : [{
+			"name" : "akira wakaba",
+			"homepage" : "https://ickx.jp",
+			"role" : "lead developer"
+		}
+	],
+	"config": {
+		"autoloader-suffix": "IckxFw3Streams"
+	},
+	"autoload" : {
+		"psr-4" : {
+			"fw3\\streams\\" : "src"
+		}
+	},
+	"autoload-dev": {
+		"psr-4" : {
+			"fw3\\tests\\streams\\" : "tests"
+		}
+	},
+	"keywords" : [
+		"fw3 Flywheel3 stream filter library"
+	],
+	"require" : {
+		"php": "^7.2",
+		"ext-mbstring" : "*"
+	},
+	"require-dev" : {
+		"phpunit/phpunit" : "~8"
+	}
+}
