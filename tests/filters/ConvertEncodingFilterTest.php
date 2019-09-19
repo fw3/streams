@@ -376,14 +376,18 @@ class ConvertEncodingFilterTest extends TestCase
         $this->assertSame(1024, ConvertEncodingFilter::sjisSeparationPositionBufferSize(ConvertEncodingFilter::SJIS_CHECK_DEFERRED_BUFFER_SIZE_DEFAULT));
 
         $memory_limit                       = ConvertEncodingFilter::adjustMemoryLimitUnit(ini_get('memory_limit'));
-        $sjis_check_deferred_buffer_size    = $memory_limit + 1;
 
-
-        try {
-            ConvertEncodingFilter::sjisSeparationPositionBufferSize($sjis_check_deferred_buffer_size);
-            throw new \Exception();
-        } catch (\Exception $e) {
-            $this->assertSame(\sprintf('現在の設定で利用できるメモリ量を超過しています。%s / %s', $sjis_check_deferred_buffer_size, $memory_limit), $e->getMessage());
+        if ($memory_limit !== -1) {
+            $sjis_check_deferred_buffer_size    = $memory_limit + 1;
+            try {
+                ConvertEncodingFilter::sjisSeparationPositionBufferSize($sjis_check_deferred_buffer_size);
+                throw new \Exception();
+            } catch (\Exception $e) {
+                $this->assertSame(\sprintf('現在の設定で利用できるメモリ量を超過しています。%s / %s', $sjis_check_deferred_buffer_size, $memory_limit), $e->getMessage());
+            }
+        } else {
+            $sjis_check_deferred_buffer_size    = ConvertEncodingFilter::sjisSeparationPositionBufferSize(\PHP_INT_MAX);
+            $this->assertSame(\PHP_INT_MAX, ConvertEncodingFilter::sjisSeparationPositionBufferSize($sjis_check_deferred_buffer_size));
         }
 
         $this->assertSame(ConvertEncodingFilter::SJIS_CHECK_DEFERRED_BUFFER_SIZE_DEFAULT, ConvertEncodingFilter::sjisSeparationPositionBufferSize());
