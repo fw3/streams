@@ -4,6 +4,12 @@ Rapid Development FrameworkであるFlywheel3 のストリーム処理ライブ�
 
 対象となるPHPのバージョンは7.2.0以上です。
 
+## 導入方法
+
+`composer require fw3/streams`としてインストールできます。
+
+[Packagist](https://packagist.org/packages/fw3/streams)
+
 ## 主な機能
 
 ### Stream Filter
