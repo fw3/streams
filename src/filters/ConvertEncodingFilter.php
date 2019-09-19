@@ -462,7 +462,7 @@ class ConvertEncodingFilter extends \php_user_filter
         $sjis_check_deferred_buffer_size    = static::adjustMemoryLimitUnit($sjis_check_deferred_buffer_size);
         $memory_limit                       = static::adjustMemoryLimitUnit(ini_get('memory_limit'));
 
-        if ($sjis_check_deferred_buffer_size >= $memory_limit) {
+        if ($memory_limit !== -1 && $sjis_check_deferred_buffer_size >= $memory_limit) {
             throw new \Exception(\sprintf('現在の設定で利用できるメモリ量を超過しています。%s / %s', $sjis_check_deferred_buffer_size, $memory_limit));
         }
 
@@ -673,8 +673,8 @@ class ConvertEncodingFilter extends \php_user_filter
         // Shift_JIS遅延判定文字列バッファのサイズ検証
         //==============================================
         if ($is_from_encoding_sjis) {
-            if (static::$sjisCheckDeferredBufferSize < \strlen($sjis_check_deferred_buffer)) {
-                throw new \Exception(\sprintf('設定されたShift_JIS遅延判定文字列バッファサイズを超過しました。%s / %s', $sjis_check_deferred_buffer, static::$maxBufferSize));
+            if (static::$sjisCheckDeferredBufferSize < $sjis_check_deferred_buffer_size = \strlen($sjis_check_deferred_buffer)) {
+                throw new \Exception(\sprintf('設定されたShift_JIS遅延判定文字列バッファサイズを超過しました。%s / %s', $sjis_check_deferred_buffer_size, static::$sjisCheckDeferredBufferSize));
             }
 
             $this->sjisCheckDeferredBuffer  = $sjis_check_deferred_buffer;
