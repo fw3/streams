@@ -78,11 +78,6 @@ class ConvertEncodingFilterTest extends TestCase
     protected const TEST_DATA_SIMPLE_TEXT4            = '1艗1鎽1𩸽1';
 
     /**
-     * @var string  テストデータ：代替文字：標準
-     */
-    protected const TEST_DATA_SIMPLE_TEXT4_DEFAULT    = '1?1?1?1';
-
-    /**
      * @var string  テストデータ：代替文字：消去
      */
     protected const TEST_DATA_SIMPLE_TEXT4_NONE       = '1111';
@@ -315,7 +310,27 @@ class ConvertEncodingFilterTest extends TestCase
         $this->assertSame($start_substitute_character_stack, array_values($end_substitute_character_stack));
 
         $stream_wrapper = ['write' => 'convert.encoding.SJIS-win:UTF-8'];
-        $this->assertWriteStreamFilterSame(static::TEST_DATA_SIMPLE_TEXT4_DEFAULT, static::TEST_DATA_SIMPLE_TEXT4, $stream_wrapper);
+
+        switch ($this->systemSubstituteCharacter) {
+            case ConvertEncodingFilter::SUBSTITUTE_CHARACTER_NONE:
+                $system_substitute_character_text = static::TEST_DATA_SIMPLE_TEXT4_NONE;
+                break;
+            case ConvertEncodingFilter::SUBSTITUTE_CHARACTER_LONG:
+                $system_substitute_character_text = static::TEST_DATA_SIMPLE_TEXT4_LONG;
+                break;
+            case ConvertEncodingFilter::SUBSTITUTE_CHARACTER_ENTITY:
+                $system_substitute_character_text = static::TEST_DATA_SIMPLE_TEXT4_ENTITY;
+                break;
+            default:
+                $system_substitute_character    = $this->systemSubstituteCharacter;
+                if (\is_int($system_substitute_character)) {
+                    $system_substitute_character    = $this->int2utf8($system_substitute_character);
+                }
+                $system_substitute_character_text = implode($system_substitute_character, [1, 1, 1, 1]);
+                break;
+        }
+
+        $this->assertWriteStreamFilterSame($system_substitute_character_text, static::TEST_DATA_SIMPLE_TEXT4, $stream_wrapper);
 
         ConvertEncodingFilter::startChangeSubstituteCharacter(ConvertEncodingFilter::SUBSTITUTE_CHARACTER_NONE);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_SIMPLE_TEXT4_NONE, static::TEST_DATA_SIMPLE_TEXT4, $stream_wrapper);
@@ -375,7 +390,7 @@ class ConvertEncodingFilterTest extends TestCase
         $this->assertSame(ConvertEncodingFilter::SJIS_CHECK_DEFERRED_BUFFER_SIZE_DEFAULT, ConvertEncodingFilter::sjisSeparationPositionBufferSize(1024));
         $this->assertSame(1024, ConvertEncodingFilter::sjisSeparationPositionBufferSize(ConvertEncodingFilter::SJIS_CHECK_DEFERRED_BUFFER_SIZE_DEFAULT));
 
-        $memory_limit                       = ConvertEncodingFilter::adjustMemoryLimitUnit(ini_get('memory_limit'));
+        $memory_limit                       = ConvertEncodingFilter::adjustMemoryLimitUnit(\ini_get('memory_limit'));
 
         if ($memory_limit !== -1) {
             $sjis_check_deferred_buffer_size    = $memory_limit + 1;
@@ -554,7 +569,7 @@ class ConvertEncodingFilterTest extends TestCase
     /**
      * Teardown
      */
-    protected function tearDown(): void
+    protected function tearDown() : void
     {
         ConvertEncodingFilter::endChangeSubstituteCharacter();
         ConvertEncodingFilter::endChangeLocale();

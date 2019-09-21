@@ -50,7 +50,7 @@ class CsvIoTest extends TestCase
     /**
      * Setup
      */
-    protected function setUp(): void
+    protected function setUp() : void
     {
         \stream_filter_register('convert.encoding.*', ConvertEncodingFilter::class);
         \stream_filter_register('line_feed.*', ConvertLienFeedFilter::class);
@@ -126,7 +126,7 @@ class CsvIoTest extends TestCase
     /**
      * Teardown
      */
-    protected function tearDown(): void
+    protected function tearDown() : void
     {
         ConvertEncodingFilter::endChangeLocale();
     }

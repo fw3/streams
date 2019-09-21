@@ -32,7 +32,7 @@ trait StreamFilterTestTrait
      * @param   string  $value          実行する値
      * @param   array   $steram_wrapper ストリームコンテキスト
      */
-    public function assertWriteStreamFilterSame(string $expected, string $value, array $steram_wrapper) : void
+    protected function assertWriteStreamFilterSame(string $expected, string $value, array $steram_wrapper) : void
     {
         $steram_wrapper['resource']   = 'php://temp';
 
@@ -171,5 +171,39 @@ trait StreamFilterTestTrait
         }
 
         return \sprintf('php://filter/%s', \implode('/', $stack));
+    }
+
+    /**
+     * 整数値で表現されたコードポイントをUTF-8文字に変換する。
+     *
+     * @param   int     $code_point UTF-8文字に変換したいコードポイント
+     * @return  string  コードポイントから作成したUTF-8文字
+     */
+    protected function int2utf8($code_point) {
+        //UTF-16コードポイント内判定
+        if ($code_point < 0) {
+            throw new \Exception(sprintf('%1$s is out of range UTF-16 code point (0x000000 - 0x10FFFF)', $code_point));
+        }
+        if (0x10FFFF < $code_point) {
+            throw new \Exception(sprintf('0x%1$X is out of range UTF-16 code point (0x000000 - 0x10FFFF)', $code_point));
+        }
+
+        //サロゲートペア判定
+        if (0xD800 <= $code_point && $code_point <= 0xDFFF) {
+            throw new \Exception(sprintf('0x%X is in of range surrogate pair code point (0xD800 - 0xDFFF)', $code_point));
+        }
+
+        //1番目のバイトのみでchr関数が使えるケース
+        if ($code_point < 0x80) {
+            return \chr($code_point);
+        }
+
+        //2番目のバイトを考慮する必要があるケース
+        if ($code_point < 0xA0) {
+            return \chr(0xC0 | $code_point >> 6) . \chr(0x80 | $code_point & 0x3F);
+        }
+
+        //数値実体参照表記からの変換
+        return \html_entity_decode('&#'. $code_point .';');
     }
 }

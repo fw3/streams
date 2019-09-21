@@ -434,6 +434,11 @@ class ConvertEncodingFilter extends \php_user_filter
     public static function adjustMemoryLimitUnit($memory_limit) : int
     {
         $memory_limit   = (string) $memory_limit;
+
+        if ($memory_limit === '-1') {
+            return -1;
+        }
+
         $unit_size      = 1;
         switch (\strtolower(\substr($memory_limit, -1))) {
             case 'g':
