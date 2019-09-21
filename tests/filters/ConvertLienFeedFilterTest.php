@@ -124,7 +124,7 @@ class ConvertLienFeedFilterTest extends TestCase
     /**
      * Setup
      */
-    protected function setUp(): void
+    protected function setUp() : void
     {
         \stream_filter_register('line_feed.*', ConvertLienFeedFilter::class);
     }
