@@ -211,8 +211,10 @@ class ConvertLienFeedFilter extends \php_user_filter
                             // 変換対象の文字列である場合は操作用カウンタを更新
                             ++$from_length;
                             ++$to_length;
+
+                            continue;
                         }
-                        break;
+                        break 2;
                     case static::STR_LF:    // LFから変換
                         if ($char === static::LF) {
                             // CRLFだった場合は読み飛ばす
@@ -224,36 +226,39 @@ class ConvertLienFeedFilter extends \php_user_filter
                             // 変換対象の文字列である場合は操作用カウンタを更新
                             ++$from_length;
                             ++$to_length;
+
+                            continue;
                         }
-                        break;
+                        break 2;
                     case static::STR_CRLF:  // CRLFから変換
                         if ($i > 1 && \substr($bucket->data, $i - 2, 2) === static::CRLF) {
                             --$i;
                             ++$from_length;
                             $to_length   += 2;  // 対象がCRLFなため2を足す
-                            break;
+                            continue;
                         }
-                        break;
+
+                        break 2;
                     case static::STR_ALL:   // CRLF、CR、LFの順から変換
                         if ($i > 1 && \substr($bucket->data, $i - 2, 2) === static::CRLF) {
                             --$i;
                             ++$from_length;
                             $to_length   += 2;  // 対象がCRLFなため2を足す
-                            break;
+                            continue;
                         }
 
                         if ($char === static::CR) {
                             ++$from_length;
                             ++$to_length;
-                            break;
+                            continue;
                         }
 
                         if ($char === static::LF) {
                             ++$from_length;
                             ++$to_length;
-                            break;
+                            continue;
                         }
-                        break;
+                        break 2;
                 }
             }
 

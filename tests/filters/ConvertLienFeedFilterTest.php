@@ -325,4 +325,42 @@ class ConvertLienFeedFilterTest extends TestCase
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF3, static::TEST_DATA_ONLY_CRLF3, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF4, static::TEST_DATA_ONLY_CRLF4, $stream_wrapper);
     }
+
+    /**
+     * i/7テスト
+     */
+    public function testI01() : void
+    {
+        $actual     = implode(ConvertLienFeedFilter::LF, [
+            '1111,1111',
+            '2222,2222',
+            '3333,3333',
+            '4444,4444',
+            '5555,5555',
+            '6666,6666',
+            '7777,7777',
+            '8888,8888',
+        ]);
+
+        $expected   = [
+            ['1111', '1111'],
+            ['2222', '2222'],
+            ['3333', '3333'],
+            ['4444', '4444'],
+            ['5555', '5555'],
+            ['6666', '6666'],
+            ['7777', '7777'],
+            ['8888', '8888'],
+        ];
+
+        $stream_wrapper = [
+            'read' => [
+                'convert.encoding.UTF-8:SJIS-win',
+                'line_feed.crlf:all',
+            ]
+        ];
+
+        $stream_chunk_size  = 1024;
+        $this->assertCsvInputStreamFilterSame($expected, $actual, $stream_chunk_size, $stream_wrapper);
+    }
 }
