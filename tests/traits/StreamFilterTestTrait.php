@@ -30,13 +30,13 @@ trait StreamFilterTestTrait
      *
      * @param   string  $expected       予想される値
      * @param   string  $value          実行する値
-     * @param   array   $steram_wrapper ストリームコンテキスト
+     * @param   array   $stream_wrapper ストリームコンテキスト
      */
-    protected function assertWriteStreamFilterSame(string $expected, string $value, array $steram_wrapper) : void
+    protected function assertWriteStreamFilterSame(string $expected, string $value, array $stream_wrapper) : void
     {
-        $steram_wrapper['resource']   = 'php://temp';
+        $stream_wrapper['resource']   = 'php://temp';
 
-        $write_stream   = $this->convertSteramWrapper($steram_wrapper);
+        $write_stream   = $this->convertStreamWrapper($stream_wrapper);
 
         $fp     = @\fopen($write_stream, 'ab');
         @\fwrite($fp, $value);
@@ -58,13 +58,13 @@ trait StreamFilterTestTrait
      *
      * @param   string  $expected       予想される値
      * @param   string  $value          実行する値
-     * @param   array   $steram_wrapper ストリームコンテキスト
+     * @param   array   $stream_wrapper ストリームコンテキスト
      */
-    protected function assertWriteStreamFilterNotSame(string $expected, string $value, array $steram_wrapper) : void
+    protected function assertWriteStreamFilterNotSame(string $expected, string $value, array $stream_wrapper) : void
     {
-        $steram_wrapper['resource']   = 'php://temp';
+        $stream_wrapper['resource']   = 'php://temp';
 
-        $write_stream   = $this->convertSteramWrapper($steram_wrapper);
+        $write_stream   = $this->convertStreamWrapper($stream_wrapper);
 
         $fp     = @\fopen($write_stream, 'ab');
         @\fwrite($fp, $value);
@@ -87,13 +87,13 @@ trait StreamFilterTestTrait
      * @param   array   $expected           予想される値
      * @param   string  $csv_text           実行する値
      * @param   int     $stream_chunk_size  ストリームラッパーのチャンクサイズ
-     * @param   array   $steram_wrapper     ストリームコンテキスト
+     * @param   array   $stream_wrapper     ストリームコンテキスト
      */
-    protected function assertCsvInputStreamFilterSame(array $expected, string $csv_text, int $stream_chunk_size, array $steram_wrapper) : void
+    protected function assertCsvInputStreamFilterSame(array $expected, string $csv_text, int $stream_chunk_size, array $stream_wrapper) : void
     {
-        $steram_wrapper['resource']   = 'php://temp';
+        $stream_wrapper['resource']   = 'php://temp';
 
-        $write_stream   = $this->convertSteramWrapper($steram_wrapper);
+        $write_stream   = $this->convertStreamWrapper($stream_wrapper);
 
         $fp     = @\fopen($write_stream, 'ab');
 
@@ -123,13 +123,13 @@ trait StreamFilterTestTrait
      * @param   string  $expected           予想される値
      * @param   array   $csv_data           実行する値
      * @param   int     $stream_chunk_size  ストリームラッパーのチャンクサイズ
-     * @param   array   $steram_wrapper     ストリームコンテキスト
+     * @param   array   $stream_wrapper     ストリームコンテキスト
      */
-    protected function assertCsvOutputStreamFilterSame(string $expected, array $csv_data, int $stream_chunk_size, array $steram_wrapper) : void
+    protected function assertCsvOutputStreamFilterSame(string $expected, array $csv_data, int $stream_chunk_size, array $stream_wrapper) : void
     {
-        $steram_wrapper['resource']   = 'php://temp';
+        $stream_wrapper['resource']   = 'php://temp';
 
-        $write_stream   = $this->convertSteramWrapper($steram_wrapper);
+        $write_stream   = $this->convertStreamWrapper($stream_wrapper);
 
         $fp     = @\fopen($write_stream, 'ab');
 
@@ -160,13 +160,13 @@ trait StreamFilterTestTrait
     /**
      * Stream Wrapper設定を文字列表現に変換します。
      *
-     * @param   array   $steram_wrapper ストリームラッパー設定
+     * @param   array   $stream_wrapper ストリームラッパー設定
      * @return  string  ストリームラッパー設定
      */
-    protected function convertSteramWrapper(array $steram_wrapper) : string
+    protected function convertStreamWrapper(array $stream_wrapper) : string
     {
         $stack  = [];
-        foreach ($steram_wrapper as $key => $context) {
+        foreach ($stream_wrapper as $key => $context) {
             $stack[]    = \sprintf('%s=%s', $key, \implode('|', (array) $context));
         }
 
