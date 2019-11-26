@@ -20,10 +20,14 @@ Rapid Development FrameworkであるFlywheel3 のストリーム処理ライブ�
 
 組み込みのロカール変更処理と代替文字設定処理を利用する事で確実かつ、期待通りの出力を得る事ができるようになります。
 
+また同梱のSpecクラス群を用いることで直感的かつ簡単、安全に設定を行うことができます。
+
 ```php
 <?php
 
 use fw3\streams\filters\ConvertEncodingFilter;
+use fw3\streams\filters\utilitys\StreamFilterSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
 
 // 必須：実行時のロカールと代替文字設定を先行して設定します
 ConvertEncodingFilter::startChangeLocale();
@@ -31,21 +35,19 @@ ConvertEncodingFilter::startChangeLocale();
 // お好みで：変換不能文字があった場合の代替文字設定
 ConvertEncodingFilter::startChangeSubstituteCharacter();
 
-// フィルタ登録
-\stream_filter_register('convert.encoding.*', ConvertEncodingFilter::class);
+// `convert.encoding.*`としてフィルタ登録
+StreamFilterSpec::registerConvertEncodingFilter();
 
 //==============================================
 // 書き込み
 //==============================================
-// エンコーディングの設定
-$from_encoding  = 'UTF-8';
-$to_encoding    = 'SJIS-win';
-
-// フィルタの設定
-$spec   = \sprintf('php://filter/write=encoding.%s:%s/resource=%s', $to_encoding, $from_encoding, $path_to_csv_file);
+// フィルタの設定：`php://filter/write=convert.encoding.SJIS-win:UTF-8/resource=path to csv file`として構築
+$spec   = StreamFilterSpec::resource($path_to_csv_file)->write([
+    StreamFilterConvertEncodingSpec::toSjisWin()->fromUtf8(),
+]);
 
 // CP932としてCSV書き込みを行う（\SplFileObjectでも使用できます。）
-$fp     = \fopen($spec, 'wb');
+$fp     = \fopen($spec->build(), 'wb');
 foreach ($rows as $row) {
     \fputcsv($fp, $row);
 }
@@ -54,16 +56,14 @@ foreach ($rows as $row) {
 //==============================================
 // 読み込み
 //==============================================
-// エンコーディングの設定
-$from_encoding  = 'SJIS-win';
-$to_encoding    = 'UTF-8';
-
-// フィルタの設定
-$spec   = \sprintf('php://filter/read=encoding.%s:%s/resource=%s', $to_encoding, $from_encoding, $path_to_csv_file);
+// フィルタの設定：`php://filter/read=convert.encoding.UTF-8:SJIS-win/resource=path to csv file`として構築
+$spec   = StreamFilterSpec::resource($path_to_csv_file)->read([
+    StreamFilterConvertEncodingSpec::fromUtf8()->toSjisWin(),
+]);
 
 // UTF-8としてCSV読み込みを行う（\SplFileObjectでも使用できます。）
 $rows   = [];
-$fp     = \fopen($spec, 'rb');
+$fp     = \fopen($spec->build(), 'rb');
 for (;($row = \fgetcsv($fp, 1024)) !== FALSE;$rows[] = $row);
 \fclose($fp);
 
@@ -81,23 +81,22 @@ ConvertEncodingFilter::endChangeLocale();
 ```php
 <?php
 
-use fw3\streams\filters\ConvertLienFeedFilter;
+use fw3\streams\filters\utilitys\StreamFilterSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
 
-// フィルタ登録
-\stream_filter_register('line_feed.*', ConvertLienFeedFilter::class);
+// `convert.linefeed.*`としてフィルタ登録
+StreamFilterSpec::registerConvertLinefeedFilter();
 
 //==============================================
 // 書き込み
 //==============================================
-// 改行コードの設定：いかなる改行コードもCRLFにして出力する
-$from_linefeed  = ConvertLienFeedFilter::STR_ALL;
-$to_linefeed    = ConvertLienFeedFilter::STR_CRLF;
-
-// フィルタの設定
-$spec   = \sprintf('php://filter/write=line_feed.%s:%s/resource=%s', $to_linefeed, $from_linefeed, $path_to_csv_file);
+// フィルタの設定：`php://filter/write=convert.linefeed.CRLF:ALL/resource=path to csv file`として構築
+$spec   = StreamFilterSpec::resource($path_to_csv_file)->write([
+    StreamFilterConvertLinefeedSpec::toCrLf()->fromAll(),
+]);
 
 // 行末の改行コードをCRLFとしてCSV書き込みを行う（\SplFileObjectでも使用できます。）
-$fp     = \fopen($spec, 'wb');
+$fp     = \fopen($spec->build(), 'wb');
 foreach ($rows as $row) {
     \fputcsv($fp, $row);
 }
@@ -112,15 +111,14 @@ foreach ($rows as $row) {
 <?php
 
 use fw3\streams\filters\ConvertEncodingFilter;
-use fw3\streams\filters\ConvertLienFeedFilter;
+use fw3\streams\filters\utilitys\StreamFilterSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
 
 //==============================================
 // 設定
 //==============================================
 $path_to_csv    = '';   // CSVファイルのパスを設定して下さい
-
-$system_encoding    = 'UTF-8';
-$file_encoding      = 'SJIS-win';
 
 //----------------------------------------------
 // 必須：実行時のロカールと代替文字設定を先行して設定します
@@ -145,34 +143,25 @@ ConvertEncodingFilter::startChangeSubstituteCharacter();
 //----------------------------------------------
 // フィルタ登録
 //----------------------------------------------
-// フィルタ名は末尾が「.*」となっていればいかなる名前でも設定できます
+// 引数を使用することでお好きなフィルタ名を設定することができます。
+//
+// StreamFilterSpec::registerConvertEncodingFilter(StreamFilterConvertEncodingSpec::DEFAULT_FILTER_NAME);
+// StreamFilterSpec::registerConvertLinefeedFilter(StreamFilterConvertLinefeedSpec::DEFAULT_FILTER_NAME);
 //----------------------------------------------
-\stream_filter_register('convert.encoding.*', ConvertEncodingFilter::class);
-\stream_filter_register('line_feed.*', ConvertLienFeedFilter::class);
+StreamFilterSpec::registerConvertEncodingFilter();
+StreamFilterSpec::registerConvertLinefeedFilter();
 
 //==============================================
 // 書き込み
 //==============================================
-// エンコーディングの設定
-$to_encoding    = $file_encoding;
-$from_encoding  = $system_encoding;
-
-// 改行コードの設定：いかなる改行コードもCRLFにして出力する
-$to_linefeed    = ConvertLienFeedFilter::STR_CRLF;
-$from_linefeed  = ConvertLienFeedFilter::STR_ALL;
-
 // フィルタの設定
-$spec   = \sprintf(
-    'php://filter/write=encoding.%s:%s%2Fline_feed.%s:%s/resource=%s',
-    $to_encoding,
-    $from_encoding,
-    $to_linefeed,
-    $from_linefeed,
-    $path_to_csv_file
-);
+$spec   = StreamFilterSpec::resource($path_to_csv)->write([
+    StreamFilterConvertEncodingSpec::toSjisWin()->fromUtf8(),
+    StreamFilterConvertLinefeedSpec::toCrLf()->fromAll(),
+]);
 
 // CP932、行末の改行コードCRLFとしてCSV書き込みを行う（\SplFileObjectでも使用できます。）
-$fp     = \fopen($spec, 'wb');
+$fp     = \fopen($spec->build(), 'wb');
 foreach ($rows as $row) {
     \fputcsv($fp, $row);
 }
@@ -181,25 +170,78 @@ foreach ($rows as $row) {
 //==============================================
 // 読み込み
 //==============================================
-// エンコーディングの設定
-$to_encoding    = $system_encoding;
-$from_encoding  = $file_encoding;
-
 // フィルタの設定
-$spec   = \sprintf(
-    'php://filter/read=encoding.%s:%s/resource=%s',
-    $to_encoding,
-    $from_encoding,
-    $path_to_csv_file
-);
+$spec   = StreamFilterSpec::resource($path_to_csv)->read([
+    StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin(),
+]);
 
 // UTF-8としてCSV読み込みを行う（\SplFileObjectでも使用できます。）
 $rows   = [];
-$fp     = \fopen($spec, 'rb');
+$fp     = \fopen($spec->build(), 'rb');
 for (;($row = \fgetcsv($fp, 1024)) !== FALSE;$rows[] = $row);
 \fclose($fp);
 
+//==============================================
 // ロカールと代替文字設定を元に戻します
+//==============================================
+ConvertEncodingFilter::endChangeSubstituteCharacter();
+ConvertEncodingFilter::endChangeLocale();
+```
+
+#### 応用：HTTP経由でのCSVダウンロード
+
+次のようにするとエクセルでも無難に読み込めるCSVファイルのダウンロードを容易に実現できます。
+
+```
+<?php
+
+use fw3\streams\filters\ConvertEncodingFilter;
+use fw3\streams\filters\utilitys\StreamFilterSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
+
+//==============================================
+// 設定
+//==============================================
+// 必須：実行時のロカールと代替文字設定を先行して設定します
+ConvertEncodingFilter::startChangeLocale();
+
+// お好みで：変換不能文字があった場合の代替文字設定
+ConvertEncodingFilter::startChangeSubstituteCharacter();
+
+// フィルタ登録
+StreamFilterSpec::registerConvertEncodingFilter();
+StreamFilterSpec::registerConvertLinefeedFilter();
+
+//==============================================
+// 例：PDOで取得したデータをそのままCSVとしてDLさせてみる
+//==============================================
+// フィルタの設定
+$spec   = StreamFilterSpec::resourceOutput()->write([
+    StreamFilterConvertEncodingSpec::toSjisWin()->fromUtf8(),
+    StreamFilterConvertLinefeedSpec::toCrLf()->fromAll(),
+]);
+
+// 仮のDB処理：実際のDB処理に置き換えてください
+$pdo    = new \PDO('spec to dsn');
+$pdo->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
+$stmt   = $pdo->prepare('SELECT * FROM table');
+$stmt->execute();
+
+// 仮のHTTP Response Header
+\header('Content-Type: application/octet-stream');
+\header('Content-Disposition: attachment; filename=fw3-sample.csv');
+
+// CP932、行末の改行コードCRLFとしてCSV書き込みを行う（\SplFileObjectでも使用できます。）
+$fp     = \fopen($spec->build(), 'wb');
+foreach ($stmt as $row) {
+    \fputcsv($fp, $row);
+}
+\fclose($fp);
+
+//==============================================
+// ロカールと代替文字設定を元に戻します
+//==============================================
 ConvertEncodingFilter::endChangeSubstituteCharacter();
 ConvertEncodingFilter::endChangeLocale();
 ```
