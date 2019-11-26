@@ -23,7 +23,7 @@ namespace fw3\streams\filters;
 /**
  * 行末の改行コードを変換するストリームフィルタクラスです。
  */
-class ConvertLienFeedFilter extends \php_user_filter
+class ConvertLienfeedFilter extends \php_user_filter
 {
     //==============================================
     // const
@@ -71,7 +71,7 @@ class ConvertLienFeedFilter extends \php_user_filter
     /**
      * @var array   文字列表現の改行から改行コードへの変換マップ
      */
-    protected const LINEFEED_MAP  = [
+    public const LINEFEED_MAP  = [
         self::STR_CR    => self::CR,
         self::STR_LF    => self::LF,
         self::STR_CRLF  => self::CRLF,
@@ -80,7 +80,7 @@ class ConvertLienFeedFilter extends \php_user_filter
     /**
      * @var array   許可する変換元改行コードの文字列リスト
      */
-    protected const ALLOW_FROM_LINEFEED_STR_LIST    = [
+    public const ALLOW_FROM_LINEFEED_STR_LIST    = [
         self::STR_CR    => self::STR_CR,
         self::STR_LF    => self::STR_LF,
         self::STR_CRLF  => self::STR_CRLF,
@@ -212,7 +212,7 @@ class ConvertLienFeedFilter extends \php_user_filter
                             ++$from_length;
                             ++$to_length;
 
-                            continue;
+                            break;
                         }
                         break 2;
                     case static::STR_LF:    // LFから変換
@@ -227,7 +227,7 @@ class ConvertLienFeedFilter extends \php_user_filter
                             ++$from_length;
                             ++$to_length;
 
-                            continue;
+                            break;
                         }
                         break 2;
                     case static::STR_CRLF:  // CRLFから変換
@@ -235,7 +235,7 @@ class ConvertLienFeedFilter extends \php_user_filter
                             --$i;
                             ++$from_length;
                             $to_length   += 2;  // 対象がCRLFなため2を足す
-                            continue;
+                            break;
                         }
 
                         break 2;
@@ -244,19 +244,19 @@ class ConvertLienFeedFilter extends \php_user_filter
                             --$i;
                             ++$from_length;
                             $to_length   += 2;  // 対象がCRLFなため2を足す
-                            continue;
+                            break;
                         }
 
                         if ($char === static::CR) {
                             ++$from_length;
                             ++$to_length;
-                            continue;
+                            break;
                         }
 
                         if ($char === static::LF) {
                             ++$from_length;
                             ++$to_length;
-                            continue;
+                            break;
                         }
                         break 2;
                 }

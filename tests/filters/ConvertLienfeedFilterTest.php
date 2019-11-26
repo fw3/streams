@@ -21,13 +21,16 @@ declare(strict_types=1);
 namespace Tests\streams\filters;
 
 use PHPUnit\Framework\TestCase;
-use fw3\streams\filters\ConvertLienFeedFilter;
+use fw3\streams\filters\ConvertLienfeedFilter;
+use fw3\streams\filters\utilitys\StreamFilterSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
 use fw3\tests\streams\traits\StreamFilterTestTrait;
 
 /**
  * 行末の改行コードを変換するストリームフィルタクラスのテスト
  */
-class ConvertLienFeedFilterTest extends TestCase
+class ConvertLienfeedFilterTest extends TestCase
 {
     use StreamFilterTestTrait;
 
@@ -126,7 +129,7 @@ class ConvertLienFeedFilterTest extends TestCase
      */
     protected function setUp() : void
     {
-        \stream_filter_register('line_feed.*', ConvertLienFeedFilter::class);
+        StreamFilterSpec::registerConvertLinefeedFilter();
     }
 
     /**
@@ -134,13 +137,13 @@ class ConvertLienFeedFilterTest extends TestCase
      */
     public function testFilterName() : void
     {
-        $stream_wrapper = ['write' => 'line_feed.lf:cr'];
+        StreamFilterSpec::registerConvertLinefeedFilter('aaaa');
+        $this->assertWriteStreamFilterSame("\r\n\n", "\r\n\r", 'php://filter/write=aaaa.lf:cr/resource=php://temp');
 
-        \stream_filter_register('aaa.*', ConvertLienFeedFilter::class);
-        $this->assertWriteStreamFilterSame("\r\n\n", "\r\n\r", $stream_wrapper);
+        StreamFilterSpec::registerConvertLinefeedFilter('aaaa.bbb.ccc');
+        $this->assertWriteStreamFilterSame("\r\n\n", "\r\n\r", 'php://filter/write=aaaa.bbb.ccc.lf:cr/resource=php://temp');
 
-        \stream_filter_register('aaa.bbb.ccc*', ConvertLienFeedFilter::class);
-        $this->assertWriteStreamFilterSame("\r\n\n", "\r\n\r", $stream_wrapper);
+        StreamFilterSpec::registerConvertLinefeedFilter();
     }
 
     /**
@@ -149,21 +152,21 @@ class ConvertLienFeedFilterTest extends TestCase
     public function testException() : void
     {
         try {
-            $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF1, static::TEST_DATA_ONLY_LF1, ['write' => 'line_feed.lf:lf']);
+            $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF1, static::TEST_DATA_ONLY_LF1, [StreamFilterConvertLinefeedSpec::toLf()->fromLf()]);
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('変換前後の改行コード指定が同じです。to_linefeed:LF, from_linefeed:LF', $e->getMessage());
         }
 
         try {
-            $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF1, static::TEST_DATA_ONLY_LF1, ['write' => 'line_feed.aaa:lf']);
+            $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF1, static::TEST_DATA_ONLY_LF1, 'php://filter/write=convert.linefeed.aaa:lf/resource=php://temp');
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('変換先の改行コード指定が無効です。to_linefeed:aaa', $e->getMessage());
         }
 
         try {
-            $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF1, static::TEST_DATA_ONLY_LF1, ['write' => 'line_feed.cr:aaa']);
+            $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF1, static::TEST_DATA_ONLY_LF1, 'php://filter/write=convert.linefeed.cr:aaa/resource=php://temp');
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('変換元の改行コード指定が無効です。from_linefeed:aaa', $e->getMessage());
@@ -175,22 +178,22 @@ class ConvertLienFeedFilterTest extends TestCase
      */
     public function testConvert2Lf() : void
     {
-        $stream_wrapper = ['write' => 'line_feed.lf:cr'];
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toLf()->fromCr()];
         $this->assertWriteStreamFilterSame("\r\n\n", "\r\n\r", $stream_wrapper);
 
-        $stream_wrapper = ['write' => 'line_feed.lf:cr'];
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toLf()->fromCr()];
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF1, static::TEST_DATA_ONLY_CR1, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF2, static::TEST_DATA_ONLY_CR2, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF3, static::TEST_DATA_ONLY_CR3, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF4, static::TEST_DATA_ONLY_CR4, $stream_wrapper);
 
-        $stream_wrapper = ['write' => 'line_feed.lf:crlf'];
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toLf()->fromCrLf()];
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF1, static::TEST_DATA_ONLY_CRLF1, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF2, static::TEST_DATA_ONLY_CRLF2, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF3, static::TEST_DATA_ONLY_CRLF3, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF4, static::TEST_DATA_ONLY_CRLF4, $stream_wrapper);
 
-        $stream_wrapper = ['write' => 'line_feed.lf:all'];
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toLf()->fromAll()];
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF1, static::TEST_DATA_ONLY_LF1, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF2, static::TEST_DATA_ONLY_LF2, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF3, static::TEST_DATA_ONLY_LF3, $stream_wrapper);
@@ -206,7 +209,7 @@ class ConvertLienFeedFilterTest extends TestCase
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF3, static::TEST_DATA_ONLY_CRLF3, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF4, static::TEST_DATA_ONLY_CRLF4, $stream_wrapper);
 
-        $stream_wrapper = ['write' => 'line_feed.lf'];
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toLf()];
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF1, static::TEST_DATA_ONLY_LF1, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF2, static::TEST_DATA_ONLY_LF2, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF3, static::TEST_DATA_ONLY_LF3, $stream_wrapper);
@@ -228,22 +231,22 @@ class ConvertLienFeedFilterTest extends TestCase
      */
     public function testConvert2Cr() : void
     {
-        $stream_wrapper = ['write' => 'line_feed.cr:lf'];
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toCr()->fromLf()];
         $this->assertWriteStreamFilterSame("\n\r\r", "\n\r\n", $stream_wrapper);
 
-        $stream_wrapper = ['write' => 'line_feed.cr:lf'];
-        $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR1, static::TEST_DATA_ONLY_CR1, $stream_wrapper);
-        $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR2, static::TEST_DATA_ONLY_CR2, $stream_wrapper);
-        $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR3, static::TEST_DATA_ONLY_CR3, $stream_wrapper);
-        $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR4, static::TEST_DATA_ONLY_CR4, $stream_wrapper);
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toCr()->fromLf()];
+        $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR1, static::TEST_DATA_ONLY_LF1, $stream_wrapper);
+        $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR2, static::TEST_DATA_ONLY_LF2, $stream_wrapper);
+        $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR3, static::TEST_DATA_ONLY_LF3, $stream_wrapper);
+        $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR4, static::TEST_DATA_ONLY_LF4, $stream_wrapper);
 
-        $stream_wrapper = ['write' => 'line_feed.cr:crlf'];
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toCr()->fromCrLf()];
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR1, static::TEST_DATA_ONLY_CRLF1, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR2, static::TEST_DATA_ONLY_CRLF2, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR3, static::TEST_DATA_ONLY_CRLF3, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR4, static::TEST_DATA_ONLY_CRLF4, $stream_wrapper);
 
-        $stream_wrapper = ['write' => 'line_feed.cr:all'];
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toCr()];
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR1, static::TEST_DATA_ONLY_LF1, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR2, static::TEST_DATA_ONLY_LF2, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR3, static::TEST_DATA_ONLY_LF3, $stream_wrapper);
@@ -259,7 +262,7 @@ class ConvertLienFeedFilterTest extends TestCase
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR3, static::TEST_DATA_ONLY_CRLF3, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR4, static::TEST_DATA_ONLY_CRLF4, $stream_wrapper);
 
-        $stream_wrapper = ['write' => 'line_feed.cr'];
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toCr()->fromAll()];
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR1, static::TEST_DATA_ONLY_LF1, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR2, static::TEST_DATA_ONLY_LF2, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CR3, static::TEST_DATA_ONLY_LF3, $stream_wrapper);
@@ -281,19 +284,19 @@ class ConvertLienFeedFilterTest extends TestCase
      */
     public function testConvert2CrLf() : void
     {
-        $stream_wrapper = ['write' => 'line_feed.crlf:cr'];
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toCrLf()->fromCr()];
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF1, static::TEST_DATA_ONLY_CR1, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF2, static::TEST_DATA_ONLY_CR2, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF3, static::TEST_DATA_ONLY_CR3, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF4, static::TEST_DATA_ONLY_CR4, $stream_wrapper);
 
-        $stream_wrapper = ['write' => 'line_feed.crlf:lf'];
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toCrLf()->fromLf()];
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF1, static::TEST_DATA_ONLY_LF1, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF2, static::TEST_DATA_ONLY_LF2, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF3, static::TEST_DATA_ONLY_LF3, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF4, static::TEST_DATA_ONLY_LF4, $stream_wrapper);
 
-        $stream_wrapper = ['write' => 'line_feed.crlf:all'];
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toCrLf()->fromAll()];
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF1, static::TEST_DATA_ONLY_CR1, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF2, static::TEST_DATA_ONLY_CR2, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF3, static::TEST_DATA_ONLY_CR3, $stream_wrapper);
@@ -309,7 +312,7 @@ class ConvertLienFeedFilterTest extends TestCase
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF3, static::TEST_DATA_ONLY_CRLF3, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF4, static::TEST_DATA_ONLY_CRLF4, $stream_wrapper);
 
-        $stream_wrapper = ['write' => 'line_feed.crlf'];
+        $stream_wrapper = [StreamFilterConvertLinefeedSpec::toCrLf()];
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF1, static::TEST_DATA_ONLY_CR1, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF2, static::TEST_DATA_ONLY_CR2, $stream_wrapper);
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF3, static::TEST_DATA_ONLY_CR3, $stream_wrapper);
@@ -331,7 +334,7 @@ class ConvertLienFeedFilterTest extends TestCase
      */
     public function testI01() : void
     {
-        $actual     = implode(ConvertLienFeedFilter::LF, [
+        $actual     = implode(ConvertLienfeedFilter::LF, [
             '1111,1111',
             '2222,2222',
             '3333,3333',
@@ -353,14 +356,12 @@ class ConvertLienFeedFilterTest extends TestCase
             ['8888', '8888'],
         ];
 
-        $stream_wrapper = [
-            'read' => [
-                'convert.encoding.UTF-8:SJIS-win',
-                'line_feed.crlf:all',
-            ]
+        $read_parameters    = [
+            StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin(),
+            StreamFilterConvertLinefeedSpec::toCrLf(),
         ];
 
         $stream_chunk_size  = 1024;
-        $this->assertCsvInputStreamFilterSame($expected, $actual, $stream_chunk_size, $stream_wrapper);
+        $this->assertCsvInputStreamFilterSame($expected, $actual, $stream_chunk_size, $read_parameters);
     }
 }

@@ -64,12 +64,27 @@ class ConvertEncodingFilter extends \php_user_filter
     /**
      * @var string  変換元のエンコーディング：省略された場合のデフォルト値 （detectOrderスタティックプロパティの値を使用する）
      */
-    public const FROM_ENCODING_DEFAULT  = 'default';
+    public const FROM_ENCODING_DEFAULT      = 'default';
 
     /**
      * @var string  変換元のエンコーディング：auto
      */
-    public const FROM_ENCODING_AUTO     = 'auto';
+    public const FROM_ENCODING_AUTO         = 'auto';
+
+    /**
+     * @var string  日本語処理系で多用するエンコーディング：UTF-8
+     */
+    public const ENCODING_NAME_UTF8         = 'UTF-8';
+
+    /**
+     * @var string  日本語処理系で多用するエンコーディング：Shift_JIS（Windows-31J）
+     */
+    public const ENCODING_NAME_SJIS_WIN     = 'SJIS-win';
+
+    /**
+     * @var string  日本語処理系で多用するエンコーディング：EUC-JP（Windows-31JのEUC-JP互換表現）
+     */
+    public const ENCODING_NAME_EUCJP_WIN    = 'eucJP-win';
 
     /**
      * @var array   mb_*関数においてShift_JISと見なす文字エンコーディング
