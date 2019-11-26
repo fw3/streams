@@ -20,6 +20,8 @@ declare(strict_types=1);
 
 namespace fw3\tests\streams\traits;
 
+use fw3\streams\filters\utilitys\StreamFilterSpec;
+
 /**
  * ストリームフィルタテスト支援特性
  */
@@ -28,17 +30,17 @@ trait StreamFilterTestTrait
     /**
      * 与えられたストリームで書き込み時のストリームフィルタをアサーションします。
      *
-     * @param   string  $expected       予想される値
-     * @param   string  $value          実行する値
-     * @param   array   $stream_wrapper ストリームコンテキスト
+     * @param   string          $expected       予想される値
+     * @param   string          $value          実行する値
+     * @param   array|string    $stream_specs   ストリームスペック
      */
-    protected function assertWriteStreamFilterSame(string $expected, string $value, array $stream_wrapper) : void
+    protected function assertWriteStreamFilterSame(string $expected, string $value, $stream_specs) : void
     {
-        $stream_wrapper['resource']   = 'php://temp';
+        if (is_array($stream_specs)) {
+            $stream_specs   = StreamFilterSpec::resourceTemp()->write($stream_specs)->build();
+        }
 
-        $write_stream   = $this->convertStreamWrapper($stream_wrapper);
-
-        $fp     = @\fopen($write_stream, 'ab');
+        $fp     = @\fopen($stream_specs, 'ab');
         @\fwrite($fp, $value);
 
         \fseek($fp, 0, \SEEK_END);
@@ -56,17 +58,17 @@ trait StreamFilterTestTrait
     /**
      * 与えられたストリームで書き込み時のストリームフィルタが異なる結果になる事をアサーションします。
      *
-     * @param   string  $expected       予想される値
-     * @param   string  $value          実行する値
-     * @param   array   $stream_wrapper ストリームコンテキスト
+     * @param   string          $expected       予想される値
+     * @param   string          $value          実行する値
+     * @param   array|string    $stream_specs   ストリームスペック
      */
-    protected function assertWriteStreamFilterNotSame(string $expected, string $value, array $stream_wrapper) : void
+    protected function assertWriteStreamFilterNotSame(string $expected, string $value, $stream_specs) : void
     {
-        $stream_wrapper['resource']   = 'php://temp';
+        if (is_array($stream_specs)) {
+            $stream_specs   = StreamFilterSpec::resourceTemp()->write($stream_specs)->build();
+        }
 
-        $write_stream   = $this->convertStreamWrapper($stream_wrapper);
-
-        $fp     = @\fopen($write_stream, 'ab');
+        $fp     = @\fopen($stream_specs, 'ab');
         @\fwrite($fp, $value);
 
         \fseek($fp, 0, \SEEK_END);
@@ -84,18 +86,18 @@ trait StreamFilterTestTrait
     /**
      * 与えられたストリームでCSV入力をアサーションします。
      *
-     * @param   array   $expected           予想される値
-     * @param   string  $csv_text           実行する値
-     * @param   int     $stream_chunk_size  ストリームラッパーのチャンクサイズ
-     * @param   array   $stream_wrapper     ストリームコンテキスト
+     * @param   array           $expected           予想される値
+     * @param   string          $csv_text           実行する値
+     * @param   int             $stream_chunk_size  ストリームラッパーのチャンクサイズ
+     * @param   string|array    $stream_specs       ストリームスペック
      */
-    protected function assertCsvInputStreamFilterSame(array $expected, string $csv_text, int $stream_chunk_size, array $stream_wrapper) : void
+    protected function assertCsvInputStreamFilterSame(array $expected, string $csv_text, int $stream_chunk_size, $stream_specs) : void
     {
-        $stream_wrapper['resource']   = 'php://temp';
+        if (is_array($stream_specs)) {
+            $stream_specs   = StreamFilterSpec::resourceTemp()->read($stream_specs)->build();
+        }
 
-        $write_stream   = $this->convertStreamWrapper($stream_wrapper);
-
-        $fp     = @\fopen($write_stream, 'ab');
+        $fp     = @\fopen($stream_specs, 'ab');
 
         @\fwrite($fp, $csv_text);
 
@@ -120,18 +122,18 @@ trait StreamFilterTestTrait
     /**
      * 与えられたストリームでCSV出力をアサーションします。
      *
-     * @param   string  $expected           予想される値
-     * @param   array   $csv_data           実行する値
-     * @param   int     $stream_chunk_size  ストリームラッパーのチャンクサイズ
-     * @param   array   $stream_wrapper     ストリームコンテキスト
+     * @param   string          $expected           予想される値
+     * @param   array           $csv_data           実行する値
+     * @param   int             $stream_chunk_size  ストリームラッパーのチャンクサイズ
+     * @param   string|array    $stream_specs       ストリームスペック
      */
-    protected function assertCsvOutputStreamFilterSame(string $expected, array $csv_data, int $stream_chunk_size, array $stream_wrapper) : void
+    protected function assertCsvOutputStreamFilterSame(string $expected, array $csv_data, int $stream_chunk_size, $stream_specs) : void
     {
-        $stream_wrapper['resource']   = 'php://temp';
+        if (is_array($stream_specs)) {
+            $stream_specs   = StreamFilterSpec::resourceTemp()->write($stream_specs)->build();
+        }
 
-        $write_stream   = $this->convertStreamWrapper($stream_wrapper);
-
-        $fp     = @\fopen($write_stream, 'ab');
+        $fp     = @\fopen($stream_specs, 'ab');
 
         if (function_exists('stream_set_chunk_size')) {
             \stream_set_chunk_size($fp, $stream_chunk_size);
@@ -155,22 +157,6 @@ trait StreamFilterTestTrait
         @\fclose($fp);
 
         $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * Stream Wrapper設定を文字列表現に変換します。
-     *
-     * @param   array   $stream_wrapper ストリームラッパー設定
-     * @return  string  ストリームラッパー設定
-     */
-    protected function convertStreamWrapper(array $stream_wrapper) : string
-    {
-        $stack  = [];
-        foreach ($stream_wrapper as $key => $context) {
-            $stack[]    = \sprintf('%s=%s', $key, \implode('|', (array) $context));
-        }
-
-        return \sprintf('php://filter/%s', \implode('/', $stack));
     }
 
     /**
