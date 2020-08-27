@@ -137,6 +137,7 @@ abstract class StreamFilterSpec
     }
 
     /**
+<<<<<<< HEAD
      * 指定された名前のストリームフィルタが登録されているか返します。
      *
      * @param   string  $filter_name    ストリームフィルタ名 登録時のストリームフィルタ名に`.*`がある場合、`.*`まで含めて指定する必要があります

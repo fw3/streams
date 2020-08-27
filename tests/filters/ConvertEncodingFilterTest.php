@@ -22,8 +22,6 @@ namespace fw3\tests\streams\filters;
 
 use PHPUnit\Framework\TestCase;
 use fw3\streams\filters\ConvertEncodingFilter;
-use fw3\streams\filters\utilitys\StreamFilterSpec;
-use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
 use fw3\tests\streams\traits\StreamFilterTestTrait;
 
 /**
@@ -130,7 +128,7 @@ class ConvertEncodingFilterTest extends TestCase
 
         ConvertEncodingFilter::detectOrder(ConvertEncodingFilter::DETECT_ORDER_DEFAULT);
 
-        StreamFilterSpec::registerConvertEncodingFilter();
+        \stream_filter_register('convert.encoding.*', ConvertEncodingFilter::class);
     }
 
     /**
@@ -140,13 +138,13 @@ class ConvertEncodingFilterTest extends TestCase
     {
         $expected_test_data_simple_text1    = \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'SJIS-win', 'UTF-8');
 
-        StreamFilterSpec::registerConvertEncodingFilter('aaa');
-        $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, static::TEST_DATA_SIMPLE_TEXT1, [StreamFilterConvertEncodingSpec::toSjisWin()]);
+        \stream_filter_register('aaa.*', ConvertEncodingFilter::class);
+        $stream_wrapper = ['write' => 'aaa.SJIS-win'];
+        $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, static::TEST_DATA_SIMPLE_TEXT1, $stream_wrapper);
 
-        StreamFilterSpec::registerConvertEncodingFilter('aaa.bbb.ccc');
-        $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, static::TEST_DATA_SIMPLE_TEXT1, [StreamFilterConvertEncodingSpec::toSjisWin()]);
-
-        StreamFilterSpec::registerConvertEncodingFilter();
+        \stream_filter_register('aaa.bbb.ccc*', ConvertEncodingFilter::class);
+        $stream_wrapper = ['write' => 'aaa.bbb.ccc.SJIS-win'];
+        $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, static::TEST_DATA_SIMPLE_TEXT1, $stream_wrapper);
     }
 
     /**
@@ -155,23 +153,21 @@ class ConvertEncodingFilterTest extends TestCase
     public function testException() : void
     {
         try {
-            $this->assertWriteStreamFilterSame('あ', 'あ', [StreamFilterConvertEncodingSpec::toUtf8()->fromUtf8()]);
+            $this->assertWriteStreamFilterSame('あ', 'あ', ['write' => 'convert.encoding.UTF-8:UTF-8']);
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('変換前後のエンコーディング名が同じです。to_encoding:UTF-8, from_encoding:UTF-8', $e->getMessage());
         }
 
         try {
-            $stream_wrapper = 'php://filter/write=convert.encoding.aaa:UTF-8/resource=php://temp';
-            $this->assertWriteStreamFilterSame('あ', 'あ', $stream_wrapper);
+            $this->assertWriteStreamFilterSame('あ', 'あ', ['write' => 'convert.encoding.aaa:UTF-8']);
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('変換先のエンコーディング名が無効です。to_encoding:aaa', $e->getMessage());
         }
 
         try {
-            $stream_wrapper = 'php://filter/write=convert.encoding.UTF-8:aaa/resource=php://temp';
-            $this->assertWriteStreamFilterSame('あ', 'あ', $stream_wrapper);
+            $this->assertWriteStreamFilterSame('あ', 'あ', ['write' => 'convert.encoding.UTF-8:aaa']);
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('変換元のエンコーディング名が無効です。from_encoding:aaa', $e->getMessage());
@@ -313,7 +309,8 @@ class ConvertEncodingFilterTest extends TestCase
         krsort($end_substitute_character_stack);
         $this->assertSame($start_substitute_character_stack, array_values($end_substitute_character_stack));
 
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toSjisWin()->fromUtf8()];
+        $stream_wrapper = ['write' => 'convert.encoding.SJIS-win:UTF-8'];
+
         switch ($this->systemSubstituteCharacter) {
             case ConvertEncodingFilter::SUBSTITUTE_CHARACTER_NONE:
                 $system_substitute_character_text = static::TEST_DATA_SIMPLE_TEXT4_NONE;
@@ -438,15 +435,15 @@ class ConvertEncodingFilterTest extends TestCase
     {
         $expected_test_data_simple_text1    = \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'SJIS-win', 'UTF-8');
 
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toSjisWin()];
+        $stream_wrapper = ['write' => 'convert.encoding.SJIS-win'];
         $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, static::TEST_DATA_SIMPLE_TEXT1, $stream_wrapper);
         $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'eucJP-win', 'UTF-8'), $stream_wrapper);
 
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toSjisWin()->fromUtf8()];
+        $stream_wrapper = ['write' => 'convert.encoding.SJIS-win:UTF-8'];
         $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, static::TEST_DATA_SIMPLE_TEXT1, $stream_wrapper);
         $this->assertWriteStreamFilterNotSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'eucJP-win', 'UTF-8'), $stream_wrapper);
 
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toSjisWin()->fromEucJpWin()];
+        $stream_wrapper = ['write' => 'convert.encoding.SJIS-win:eucJP-win'];
         $this->assertWriteStreamFilterNotSame($expected_test_data_simple_text1, static::TEST_DATA_SIMPLE_TEXT1, $stream_wrapper);
         $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'eucJP-win', 'UTF-8'), $stream_wrapper);
     }
@@ -458,15 +455,15 @@ class ConvertEncodingFilterTest extends TestCase
     {
         $expected_test_data_simple_text1    = \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'eucJP-win', 'UTF-8');
 
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toEucJpWin()];
+        $stream_wrapper = ['write' => 'convert.encoding.eucJP-win'];
         $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, static::TEST_DATA_SIMPLE_TEXT1, $stream_wrapper);
         $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'SJIS-win', 'UTF-8'), $stream_wrapper);
 
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toEucJpWin()->fromUtf8()];
+        $stream_wrapper = ['write' => 'convert.encoding.eucJP-win:UTF-8'];
         $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, static::TEST_DATA_SIMPLE_TEXT1, $stream_wrapper);
         $this->assertWriteStreamFilterNotSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'SJIS-win', 'UTF-8'), $stream_wrapper);
 
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toEucJpWin()->fromSjisWin()];
+        $stream_wrapper = ['write' => 'convert.encoding.eucJP-win:SJIS-win'];
         $this->assertWriteStreamFilterNotSame($expected_test_data_simple_text1, static::TEST_DATA_SIMPLE_TEXT1, $stream_wrapper);
         $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'SJIS-win', 'UTF-8'), $stream_wrapper);
     }
@@ -478,15 +475,15 @@ class ConvertEncodingFilterTest extends TestCase
     {
         $expected_test_data_simple_text1    = static::TEST_DATA_SIMPLE_TEXT1;
 
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toUtf8()];
+        $stream_wrapper = ['write' => 'convert.encoding.UTF-8'];
         $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'SJIS-win', 'UTF-8'), $stream_wrapper);
         $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'eucJP-win', 'UTF-8'), $stream_wrapper);
 
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin()];
+        $stream_wrapper = ['write' => 'convert.encoding.UTF-8:SJIS-win'];
         $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'SJIS-win', 'UTF-8'), $stream_wrapper);
         $this->assertWriteStreamFilterNotSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'eucJP-win', 'UTF-8'), $stream_wrapper);
 
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toUtf8()->fromEucjpWin()];
+        $stream_wrapper = ['write' => 'convert.encoding.UTF-8:eucJP-win'];
         $this->assertWriteStreamFilterNotSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'SJIS-win', 'UTF-8'), $stream_wrapper);
         $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'eucJP-win', 'UTF-8'), $stream_wrapper);
     }
@@ -496,7 +493,7 @@ class ConvertEncodingFilterTest extends TestCase
      */
     public function testComplex1() : void
     {
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin()];
+        $stream_wrapper = ['read' => 'convert.encoding.UTF-8:SJIS-win'];
 
         $expected   = [
             ['あかさた', 'なはまや'],
@@ -515,7 +512,7 @@ class ConvertEncodingFilterTest extends TestCase
      */
     public function testComplex2() : void
     {
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin()];
+        $stream_wrapper = ['read' => 'convert.encoding.UTF-8:SJIS-win'];
 
         $expected   = [
             [self::TEST_DATA_SIMPLE_TEXT1, self::TEST_DATA_SIMPLE_TEXT1],
@@ -534,7 +531,7 @@ class ConvertEncodingFilterTest extends TestCase
      */
     public function testComplex3() : void
     {
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin()];
+        $stream_wrapper = ['read' => 'convert.encoding.UTF-8:SJIS-win'];
 
         $expected   = [
             [static::TEST_DATA_SIMPLE_TEXT2, static::TEST_DATA_SIMPLE_TEXT2],
@@ -555,7 +552,7 @@ class ConvertEncodingFilterTest extends TestCase
      */
     public function testComplex4() : void
     {
-        $stream_wrapper = [StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin()];
+        $stream_wrapper = ['read' => 'convert.encoding.UTF-8:SJIS-win'];
 
         $expected   = [
             [self::TEST_DATA_SIMPLE_TEXT3, self::TEST_DATA_SIMPLE_TEXT3],

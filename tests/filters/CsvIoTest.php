@@ -22,10 +22,7 @@ namespace Tests\streams\filters;
 
 use PHPUnit\Framework\TestCase;
 use fw3\streams\filters\ConvertEncodingFilter;
-use fw3\streams\filters\ConvertLienfeedFilter;
-use fw3\streams\filters\utilitys\StreamFilterSpec;
-use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
-use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
+use fw3\streams\filters\ConvertLienFeedFilter;
 use fw3\tests\streams\traits\StreamFilterTestTrait;
 
 /**
@@ -55,8 +52,8 @@ class CsvIoTest extends TestCase
      */
     protected function setUp() : void
     {
-        StreamFilterSpec::registerConvertEncodingFilter();
-        StreamFilterSpec::registerConvertLinefeedFilter();
+        \stream_filter_register('convert.encoding.*', ConvertEncodingFilter::class);
+        \stream_filter_register('line_feed.*', ConvertLienFeedFilter::class);
 
         ConvertEncodingFilter::startChangeLocale();
     }
@@ -66,13 +63,15 @@ class CsvIoTest extends TestCase
      */
     public function testCsvOutput() : void
     {
-        $write_parameters   = [
-            StreamFilterConvertEncodingSpec::setupForSjisOut(),
-            StreamFilterConvertLinefeedSpec::setupForWindows(),
+        $steram_wrapper = [
+            'write' => [
+                'convert.encoding.SJIS-win',
+                'line_feed.crlf',
+            ],
         ];
 
         $expected   = \mb_convert_encoding(\implode(
-            ConvertLienfeedFilter::CRLF,
+            ConvertLienFeedFilter::CRLF,
             [
                 \implode(',', [static::TEST_DATA_SIMPLE_TEXT1, '"'. static::TEST_DATA_SIMPLE_TEXT2 .'"', static::TEST_DATA_SIMPLE_TEXT3]),
                 \implode(',', ['"'. static::TEST_DATA_SIMPLE_TEXT2 .'"', static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1]),
@@ -89,7 +88,7 @@ class CsvIoTest extends TestCase
 
         $stream_chunk_size  = 1024;
 
-        $this->assertCsvOutputStreamFilterSame($expected, $csv_data, $stream_chunk_size, $write_parameters);
+        $this->assertCsvOutputStreamFilterSame($expected, $csv_data, $stream_chunk_size, $steram_wrapper);
     }
 
     /**
@@ -97,8 +96,10 @@ class CsvIoTest extends TestCase
      */
     public function testCsvInput() : void
     {
-        $read_parameters    = [
-            StreamFilterConvertEncodingSpec::setupForUtf8Out(),
+        $steram_wrapper = [
+            'read' => [
+                'convert.encoding.UTF-8',
+            ]
         ];
 
         $expected   = [
@@ -108,7 +109,7 @@ class CsvIoTest extends TestCase
         ];
 
         $csv_text   = \mb_convert_encoding(\implode(
-            ConvertLienfeedFilter::CRLF,
+            ConvertLienFeedFilter::CRLF,
             [
                 \implode(',', [static::TEST_DATA_SIMPLE_TEXT1, '"'. static::TEST_DATA_SIMPLE_TEXT2 .'"', static::TEST_DATA_SIMPLE_TEXT3]),
                 \implode(',', ['"'. static::TEST_DATA_SIMPLE_TEXT2 .'"', static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1]),
@@ -119,7 +120,7 @@ class CsvIoTest extends TestCase
 
         $stream_chunk_size  = 1024;
 
-        $this->assertCsvInputStreamFilterSame($expected, $csv_text, $stream_chunk_size, $read_parameters);
+        $this->assertCsvInputStreamFilterSame($expected, $csv_text, $stream_chunk_size, $steram_wrapper);
     }
 
     /**
