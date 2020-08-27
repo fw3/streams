@@ -137,6 +137,17 @@ abstract class StreamFilterSpec
     }
 
     /**
+     * 指定された名前のストリームフィルタが登録されているか返します。
+     *
+     * @param   string  $filter_name    ストリームフィルタ名 登録時のストリームフィルタ名に`.*`がある場合、`.*`まで含めて指定する必要があります
+     * @return  bool    ストリームフィルタが登録されている場合はtrue、そうでない場合はfalse
+     */
+    public static function registeredStreamFilterName(string $filter_name): bool
+    {
+        return in_array($filter_name, stream_get_filters(), true);
+    }
+
+    /**
      * フィルタの対象となるストリームを設定したストリームフィルタスペックエンティティを返します。
      *
      * @param   string|\SplFileInfo|\SplFileObject  $resource       フィルタの対象となるストリーム
@@ -287,5 +298,57 @@ abstract class StreamFilterSpec
     public static function appendBothChain($filter, array $filter_parameters = [], string $filter_parameter_separator = self::PARAMETER_OPTION_SEPARATOR) : \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity
     {
         return static::factory()->appendBothChain($filter, $filter_parameters, $filter_parameter_separator);
+    }
+
+    //----------------------------------------------
+    // decorators
+    //----------------------------------------------
+    /**
+     * CSV入出力を行うにあたって必要な事前・事後処理を行い、$callbackで指定された処理を行います。
+     *
+     * ！！注意！！
+     * このメソッドは実行時にconvert encoding filterやconvert lien_feed filterの登録が行われていなかった場合に、フィルタの登録を行います。
+     * フィルタ名をデフォルトから変更したい場合、このメソッドを呼び出す前に、次のメソッドでフィルタ名を変更してください。
+     * - StreamFilterConvertEncodingSpec::filterName()
+     * - StreamFilterConvertLinefeedSpec::filterName()
+     *
+     * @param   callable    $callback               実際の処理
+     * @param   null|string $locale                 強制的に適用したいロカール
+     * @param   null|array  $detect_order           エンコーディング検出順
+     * @param   null|string $substitute_character   文字コードが無効または存在しない場合の代替文字
+     * @return  mixed       $callbackの返り値
+     */
+    public static function decorateForCsv(callable $callback, ?string $substitute_character = null, ?array $detect_order = null, ?string $locale = null)
+    {
+        // ロカールと代替文字設定を設定
+        ConvertEncodingFilter::startChangeLocale($locale);
+        ConvertEncodingFilter::startChangeSubstituteCharacter($substitute_character);
+
+        // フィルタ登録がない場合は登録
+        if (!StreamFilterConvertEncodingSpec::registeredFilterName()) {
+            StreamFilterSpec::registerConvertEncodingFilter();
+        }
+
+        if (!StreamFilterConvertLinefeedSpec::registeredFilterName()) {
+            StreamFilterSpec::registerConvertLinefeedFilter();
+        }
+
+        $start_detect_order = ConvertEncodingFilter::detectOrder();
+        ConvertEncodingFilter::detectOrder(is_null($detect_order) || empty($detect_order) ? ConvertEncodingFilter::DETECT_ORDER_DEFAULT : $detect_order);
+
+        // 実行
+        try {
+            $result = $callback();
+        } catch (\Exception $e) {
+            throw $e;
+        } finally {
+            // ロカールと代替文字設定を元に戻します
+            ConvertEncodingFilter::endChangeSubstituteCharacter();
+            ConvertEncodingFilter::endChangeLocale();
+            ConvertEncodingFilter::detectOrder($start_detect_order);
+        }
+
+        // 処理の終了
+        return $result;
     }
 }
