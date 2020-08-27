@@ -148,6 +148,16 @@ abstract class StreamFilterConvertLinefeedSpec
         return \sprintf('%s.*', static::filterName());
     }
 
+    /**
+     * 現在のフィルタ名のストリームフィルタが登録されているかを返します。
+     *
+     * @return  bool    現在のフィルタ名のストリームフィルタが登録されている場合はtrue、そうでない場合はfalse
+     */
+    public static function registeredFilterName()
+    {
+        return in_array(static::registerFilterName(), stream_get_filters(), true);
+    }
+
     //==============================================
     // method
     //==============================================

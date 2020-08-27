@@ -4,6 +4,11 @@ Rapid Development FrameworkであるFlywheel3 のストリーム処理ライブ�
 
 対象となるPHPのバージョンは7.2.0以上です。
 
+過去バージョンであるPHP 5.3.3以上の環境では [fw3-for-old/streams](https://github.com/fw3-for-old/streams) を使用してください。
+
+お手軽簡単、今すぐに利用したい方は [導入方法](#導入方法) を参照し、ライブラリを導入後、 [応用：初期化設定もライブラリに任せた実装](#応用：初期化設定もライブラリに任せた実装) にある実装を試してみてください。
+
+
 ## 導入方法
 
 `composer require fw3/streams`としてインストールできます。
@@ -244,4 +249,109 @@ foreach ($stmt as $row) {
 //==============================================
 ConvertEncodingFilter::endChangeSubstituteCharacter();
 ConvertEncodingFilter::endChangeLocale();
+```
+
+#### 応用：初期化設定もライブラリに任せた実装
+
+フィルタ登録やロカールと代替文字の設定と実行後のリストアなど、ボイラープレートとなりがちな処理をライブラリに任せて実行することもできます。
+
+##### 無難なCSV入出力
+
+```php
+<?php
+
+use fw3\streams\filters\utilitys\StreamFilterSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
+
+//==============================================
+// 設定
+//==============================================
+$rows   = [[]]; // データ
+
+$path_to_csv    = '';   // CSVファイルのパスを設定して下さい
+
+//----------------------------------------------
+// 一括即時実行
+//----------------------------------------------
+// フィルタ登録、ロカールと代替文字の設定と実行後のリストアも包括して実行します。
+// コールバックの実行中に例外が発生してもロカールと代替文字のリストアは実行されます。
+//----------------------------------------------
+$result = StreamFilterSpec::decorateForCsv(function () use ($path_to_csv, $rows) {
+    //==============================================
+    // 書き込み
+    //==============================================
+    // フィルタの設定
+    $spec   = StreamFilterSpec::resource($path_to_csv)->write([
+        StreamFilterConvertEncodingSpec::toSjisWin()->fromUtf8(),
+        StreamFilterConvertLinefeedSpec::toCrLf()->fromAll(),
+    ]);
+
+    // CP932、行末の改行コードCRLFとしてCSV書き込みを行う（\SplFileObjectでも使用できます。）
+    $fp     = \fopen($spec->build(), 'r+b');
+    foreach ($rows as $row) {
+        \fputcsv($fp, $row);
+    }
+    \fclose($fp);
+
+    //==============================================
+    // 読み込み
+    //==============================================
+    // フィルタの設定
+    $spec   = StreamFilterSpec::resource($path_to_csv)->read([
+        StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin(),
+    ]);
+
+    // UTF-8としてCSV読み込みを行う（\SplFileObjectでも使用できます。）
+    $rows   = [];
+    $fp     = \fopen($spec->build(), 'r+b');
+    for (;($row = \fgetcsv($fp, 1024)) !== FALSE;$rows[] = $row);
+    \fclose($fp);
+
+    return $rows;
+});
+```
+
+##### HTTP経由でのCSVダウンロード
+
+```php
+<?php
+
+use fw3\streams\filters\utilitys\StreamFilterSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
+
+//----------------------------------------------
+// 一括即時実行
+//----------------------------------------------
+// フィルタ登録、ロカールと代替文字の設定と実行後のリストアも包括して実行します。
+// コールバックの実行中に例外が発生してもロカールと代替文字のリストアは実行されます。
+//----------------------------------------------
+StreamFilterSpec::decorateForCsv(function () {
+    //==============================================
+    // 例：PDOで取得したデータをそのままCSVとしてDLさせてみる
+    //==============================================
+    // フィルタの設定
+    $spec   = StreamFilterSpec::resourceOutput()->write([
+        StreamFilterConvertEncodingSpec::toSjisWin()->fromUtf8(),
+        StreamFilterConvertLinefeedSpec::toCrLf()->fromAll(),
+    ]);
+
+    // 仮のDB処理：実際のDB処理に置き換えてください
+    $pdo    = new \PDO('spec to dsn');
+    $pdo->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
+    $stmt   = $pdo->prepare('SELECT * FROM table');
+    $stmt->execute();
+
+    // 仮のHTTP Response Header
+    \header('Content-Type: application/octet-stream');
+    \header('Content-Disposition: attachment; filename=fw3-sample.csv');
+
+    // CP932、行末の改行コードCRLFとしてCSV書き込みを行う（\SplFileObjectでも使用できます。）
+    $fp     = \fopen($spec->build(), 'wb');
+    foreach ($stmt as $row) {
+        \fputcsv($fp, $row);
+    }
+    \fclose($fp);
+});
 ```
