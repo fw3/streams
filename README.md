@@ -77,7 +77,7 @@ ConvertEncodingFilter::endChangeSubstituteCharacter();
 ConvertEncodingFilter::endChangeLocale();
 ```
 
-#### 行末改行コード変換ストリームフィルタ：ConvertLienFeedFiltermd
+#### 行末改行コード変換ストリームフィルタ：ConvertLienfeedFiltermd
 
 ファイルへの入出力時に**行末の**改行コードの変換を行うフィルタです。
 
