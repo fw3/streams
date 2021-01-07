@@ -19,7 +19,7 @@ Rapid Development FrameworkであるFlywheel3 のストリーム処理ライブ�
 
 ### Stream Filter
 
-#### エンコーディング変換ストリームフィルタ：ConvertEncodingFiltermd
+#### エンコーディング変換ストリームフィルタ：ConvertEncodingFilter
 
 ファイルへの入出力時にエンコーディングの変換を行うフィルタです。
 
@@ -77,7 +77,7 @@ ConvertEncodingFilter::endChangeSubstituteCharacter();
 ConvertEncodingFilter::endChangeLocale();
 ```
 
-#### 行末改行コード変換ストリームフィルタ：ConvertLienfeedFiltermd
+#### 行末改行コード変換ストリームフィルタ：ConvertLinefeedFilter
 
 ファイルへの入出力時に**行末の**改行コードの変換を行うフィルタです。
 

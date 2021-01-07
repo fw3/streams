@@ -21,7 +21,7 @@ declare(strict_types=1);
 namespace fw3\streams\filters\utilitys;
 
 use fw3\streams\filters\ConvertEncodingFilter;
-use fw3\streams\filters\ConvertLienfeedFilter;
+use fw3\streams\filters\ConvertLinefeedFilter;
 use fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
@@ -133,7 +133,7 @@ abstract class StreamFilterSpec
     public static function registerConvertLinefeedFilter($filter_name = StreamFilterConvertLinefeedSpec::DEFAULT_FILTER_NAME) : void
     {
         StreamFilterConvertLinefeedSpec::filterName($filter_name);
-        \stream_filter_register(StreamFilterConvertLinefeedSpec::registerFilterName(), ConvertLienfeedFilter::class);
+        \stream_filter_register(StreamFilterConvertLinefeedSpec::registerFilterName(), ConvertLinefeedFilter::class);
     }
 
     /**

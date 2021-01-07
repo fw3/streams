@@ -22,7 +22,7 @@ namespace Tests\streams\filters;
 
 use PHPUnit\Framework\TestCase;
 use fw3\streams\filters\ConvertEncodingFilter;
-use fw3\streams\filters\ConvertLienfeedFilter;
+use fw3\streams\filters\ConvertLinefeedFilter;
 use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
@@ -72,7 +72,7 @@ class CsvIoTest extends TestCase
         ];
 
         $expected   = \mb_convert_encoding(\implode(
-            ConvertLienfeedFilter::CRLF,
+            ConvertLinefeedFilter::CRLF,
             [
                 \implode(',', [static::TEST_DATA_SIMPLE_TEXT1, '"'. static::TEST_DATA_SIMPLE_TEXT2 .'"', static::TEST_DATA_SIMPLE_TEXT3]),
                 \implode(',', ['"'. static::TEST_DATA_SIMPLE_TEXT2 .'"', static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1]),
@@ -108,7 +108,7 @@ class CsvIoTest extends TestCase
         ];
 
         $csv_text   = \mb_convert_encoding(\implode(
-            ConvertLienfeedFilter::CRLF,
+            ConvertLinefeedFilter::CRLF,
             [
                 \implode(',', [static::TEST_DATA_SIMPLE_TEXT1, '"'. static::TEST_DATA_SIMPLE_TEXT2 .'"', static::TEST_DATA_SIMPLE_TEXT3]),
                 \implode(',', ['"'. static::TEST_DATA_SIMPLE_TEXT2 .'"', static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1]),

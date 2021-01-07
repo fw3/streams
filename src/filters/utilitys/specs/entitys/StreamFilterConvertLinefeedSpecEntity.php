@@ -20,7 +20,7 @@ declare(strict_types=1);
 
 namespace fw3\streams\filters\utilitys\specs\entitys;
 
-use fw3\streams\filters\ConvertLienfeedFilter;
+use fw3\streams\filters\ConvertLinefeedFilter;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
 use fw3\streams\filters\utilitys\specs\interfaces\StreamFilterSpecInterface;
 use fw3\streams\filters\utilitys\specs\interfaces\StreamFilterSpecTrait;
@@ -56,22 +56,22 @@ class StreamFilterConvertLinefeedSpecEntity implements StreamFilterSpecInterface
     /**
      * @var string  改行コード表現の文字列表現：CRLF
      */
-    public const CRLF   = ConvertLienfeedFilter::STR_CRLF;
+    public const CRLF   = ConvertLinefeedFilter::STR_CRLF;
 
     /**
      * @var string  改行コード表現の文字列表現：CR
      */
-    public const CR     = ConvertLienfeedFilter::STR_CR;
+    public const CR     = ConvertLinefeedFilter::STR_CR;
 
     /**
      * @var string  改行コード表現の文字列表現：LF
      */
-    public const LF     = ConvertLienfeedFilter::STR_LF;
+    public const LF     = ConvertLinefeedFilter::STR_LF;
 
     /**
      * @var string  改行コード表現の文字列表現：ALL (変換元用全種類受け入れ設定)
      */
-    public const ALL    = ConvertLienfeedFilter::STR_ALL;
+    public const ALL    = ConvertLinefeedFilter::STR_ALL;
 
     /**
      * @var string  改行コード表現の文字列表現：変換元改行コード表現のデフォルト
@@ -91,12 +91,12 @@ class StreamFilterConvertLinefeedSpecEntity implements StreamFilterSpecInterface
     /**
      * @var array   文字列表現の改行から改行コード表現への変換マップ
      */
-    public const LINEFEED_MAP  = ConvertLienfeedFilter::LINEFEED_MAP;
+    public const LINEFEED_MAP  = ConvertLinefeedFilter::LINEFEED_MAP;
 
     /**
      * @var array   許可する変換元改行コード表現の文字列リスト
      */
-    public const ALLOW_FROM_LINEFEED_STR_LIST    = ConvertLienfeedFilter::ALLOW_FROM_LINEFEED_STR_LIST;
+    public const ALLOW_FROM_LINEFEED_STR_LIST    = ConvertLinefeedFilter::ALLOW_FROM_LINEFEED_STR_LIST;
 
     //==============================================
     // property
