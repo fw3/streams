@@ -21,7 +21,7 @@ declare(strict_types=1);
 namespace Tests\streams\filters;
 
 use PHPUnit\Framework\TestCase;
-use fw3\streams\filters\ConvertLienfeedFilter;
+use fw3\streams\filters\ConvertLinefeedFilter;
 use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
@@ -30,7 +30,7 @@ use fw3\tests\streams\traits\StreamFilterTestTrait;
 /**
  * 行末の改行コードを変換するストリームフィルタクラスのテスト
  */
-class ConvertLienfeedFilterTest extends TestCase
+class ConvertLinefeedFilterTest extends TestCase
 {
     use StreamFilterTestTrait;
 
@@ -334,7 +334,7 @@ class ConvertLienfeedFilterTest extends TestCase
      */
     public function testI01() : void
     {
-        $actual     = implode(ConvertLienfeedFilter::LF, [
+        $actual     = implode(ConvertLinefeedFilter::LF, [
             '1111,1111',
             '2222,2222',
             '3333,3333',
