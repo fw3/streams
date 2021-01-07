@@ -23,7 +23,7 @@ namespace fw3\streams\filters;
 /**
  * 行末の改行コードを変換するストリームフィルタクラスです。
  */
-class ConvertLienfeedFilter extends \php_user_filter
+class ConvertLinefeedFilter extends \php_user_filter
 {
     //==============================================
     // const
