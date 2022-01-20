@@ -114,7 +114,7 @@ class ConvertLinefeedFilter extends \php_user_filter
      * @return  bool    instance生成に成功した場合はtrue、そうでなければfalse (falseを返した場合、フィルタの登録が失敗したものと見なされる)
      * @see \php_user_filter::onCreate()
      */
-    public function onCreate()
+    public function onCreate(): bool
     {
         //==============================================
         // フィルタ名フォーマット確認
@@ -181,7 +181,7 @@ class ConvertLinefeedFilter extends \php_user_filter
      *     PSFS_ERR_FATAL (デフォルト)   ：フィルタで対処不能なエラーが発生し、処理を続行できない
      * @see \php_user_filter::filter()
      */
-    public function filter($in, $out, &$consumed, $closing)
+    public function filter($in, $out, &$consumed, $closing): int
     {
         //==============================================
         // 主処理

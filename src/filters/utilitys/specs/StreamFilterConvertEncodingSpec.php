@@ -74,6 +74,12 @@ abstract class StreamFilterConvertEncodingSpec
     public const ENCODING_NAME_SJIS_WIN     = StreamFilterConvertEncodingSpecEntity::ENCODING_NAME_SJIS_WIN;
 
     /**
+     * @var string  日本語処理系で多用するエンコーディング：CP932（Shift_JIS（Windows-31J））
+     *              PHP8.1での誤った修正によりPHP8.1時点ではSJIS-winではなくCP932を利用する必要がある。
+     */
+    const ENCODING_NAME_CP932   = StreamFilterConvertEncodingSpecEntity::ENCODING_NAME_CP932;
+
+    /**
      * @var string  日本語処理系で多用するエンコーディング：EUC-JP（Windows-31JのEUC-JP互換表現）
      */
     public const ENCODING_NAME_EUCJP_WIN    = StreamFilterConvertEncodingSpecEntity::ENCODING_NAME_EUCJP_WIN;
@@ -180,11 +186,25 @@ abstract class StreamFilterConvertEncodingSpec
     /**
      * 変換後の文字エンコーディングをSJIS-winとして設定したスペックエンティティを返します。
      *
+     * ！！注意！！
+     * PHP8.1での誤った修正により`SJIS-win`は削除されました。
+     * 過去実装でも極力そのまま動作させるために、内部的にはCP932を設定したものとみなし、処理を続行させます。
+     *
      * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換後の文字エンコーディングをSJIS-winとして設定したスペックエンティティ
      */
     public static function toSjisWin()
     {
         return static::factory()->toSjisWin();
+    }
+
+    /**
+     * 変換後の文字エンコーディングをCP932として設定したスペックエンティティを返します。
+     *
+     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換後の文字エンコーディングをCP932として設定したスペックエンティティ
+     */
+    public static function toCP932()
+    {
+        return static::factory()->toCP932();
     }
 
     /**
@@ -221,11 +241,25 @@ abstract class StreamFilterConvertEncodingSpec
     /**
      * 変換前の文字エンコーディングをSJIS-winとして設定したスペックエンティティを返します。
      *
+     * ！！注意！！
+     * PHP8.1での誤った修正により`SJIS-win`は削除されました。
+     * 過去実装でも極力そのまま動作させるために、内部的にはCP932を設定したものとみなし、処理を続行させます。
+     *
      * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換前の文字エンコーディングをSJIS-winとして設定したスペックエンティティ
      */
     public static function fromSjisWin()
     {
         return static::factory()->fromSjisWin();
+    }
+
+    /**
+     * 変換前の文字エンコーディングをCP932として設定したスペックエンティティを返します。
+     *
+     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換前の文字エンコーディングをCP932として設定したスペックエンティティ
+     */
+    public static function fromCP932()
+    {
+        return static::factory()->fromCP932();
     }
 
     /**
