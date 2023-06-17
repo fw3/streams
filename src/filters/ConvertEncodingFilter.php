@@ -59,6 +59,11 @@ class ConvertEncodingFilter extends \php_user_filter
      */
     public const LOCALE_FOR_WINDOWS_ALTERNATIVE = 'C';
 
+    /**
+     * @var string LOCALE：mac環境用のUTF-8代替ロカール
+     */
+    public const LOCALE_FOR_MAC_UTF_8_ALTERNATIVE = 'ja_JP.UTF-8';
+
     // ----------------------------------------------
     // エンコーディング変換設定
     // ----------------------------------------------
@@ -268,7 +273,12 @@ class ConvertEncodingFilter extends \php_user_filter
         static $locale = null;
 
         if ($locale === null) {
-            // Windows環境以外は"ja_JP.UTF-8"を使用する
+            // mac環境は"ja_JP.UTF-8"を使用する
+            if (\PHP_OS_FAMILY === 'Darwin') {
+                return $locale = static::LOCALE_FOR_MAC_UTF_8_ALTERNATIVE;
+            }
+
+            // 残るWindows環境以外は"ja_JP.UTF-8"を使用する
             if (\PHP_OS_FAMILY !== 'Windows') {
                 return $locale = static::LOCALE_FOR_DEFAULT;
             }
