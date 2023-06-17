@@ -1,5 +1,6 @@
 <?php
-/**    _______       _______
+/**
+ *     _______       _______
  *    / ____/ |     / /__  /
  *   / /_   | | /| / / /_ <
  *  / __/   | |/ |/ /___/ /
@@ -21,133 +22,134 @@ declare(strict_types=1);
 namespace fw3\streams\filters\utilitys\entitys;
 
 use fw3\streams\filters\utilitys\specs\interfaces\StreamFilterSpecInterface;
+use fw3\streams\filters\utilitys\StreamFilterSpec;
 
 /**
  * ストリームフィルタ設定を扱うクラスです。
  */
 class StreamFilterSpecEntity
 {
-    //==============================================
+    // ==============================================
     // const
-    //==============================================
+    // ==============================================
     // フィルタパラメータ
-    //----------------------------------------------
+    // ----------------------------------------------
     /**
-     * @var string  フィルタパラメータ間のセパレータ
+     * @var string フィルタパラメータ間のセパレータ
      */
     public const PARAMETER_SEPARATOR        = '/';
 
     /**
-     * @var string  パラメータチェーン間のセパレータ
+     * @var string パラメータチェーン間のセパレータ
      */
     public const PARAMETER_CHAIN_SEPARATOR  = '|';
 
     /**
-     * @var string  パラメータオプション間のセパレータ
+     * @var string パラメータオプション間のセパレータ
      */
     public const PARAMETER_OPTION_SEPARATOR = '/';
 
-    //----------------------------------------------
+    // ----------------------------------------------
     // resource
-    //----------------------------------------------
+    // ----------------------------------------------
     /**
-     * @var string  リソース名：stdin
+     * @var string リソース名：stdin
      */
     public const RESOURCE_PHP_STDIN     = 'php://stdin';
 
     /**
-     * @var string  リソース名：strout
+     * @var string リソース名：strout
      */
     public const RESOURCE_PHP_STDOUT    = 'php://stdout';
 
     /**
-     * @var string  リソース名：strerr
+     * @var string リソース名：strerr
      */
     public const RESOURCE_PHP_STDERR    = 'php://stderr';
 
     /**
-     * @var string  リソース名：input
+     * @var string リソース名：input
      */
     public const RESOURCE_PHP_INPUT     = 'php://input';
 
     /**
-     * @var string  リソース名：output
+     * @var string リソース名：output
      */
     public const RESOURCE_PHP_OUTPUT    = 'php://output';
 
     /**
-     * @var string  リソース名：fd
+     * @var string リソース名：fd
      */
     public const RESOURCE_PHP_FD        = 'php://fd';
 
     /**
-     * @var string  リソース名：memory
+     * @var string リソース名：memory
      */
     public const RESOURCE_PHP_MEMORY    = 'php://memory';
 
     /**
-     * @var string  リソース名：temp
+     * @var string リソース名：temp
      */
     public const RESOURCE_PHP_TEMP      = 'php://temp';
 
-    //==============================================
+    // ==============================================
     // property
-    //==============================================
+    // ==============================================
     // フィルタパラメータ
-    //----------------------------------------------
+    // ----------------------------------------------
     /**
-     * @var string|\SplFileInfo|\SplFileObject  フィルタの対象となるストリーム
+     * @var string|\SplFileInfo|\SplFileObject フィルタの対象となるストリーム
      */
-    protected $resource = null;
+    protected $resource;
 
     /**
-     * @var array   書き込みチェーンに適用するフィルタのリスト
+     * @var array 書き込みチェーンに適用するフィルタのリスト
      */
-    protected $write    = [];
+    protected array $write    = [];
 
     /**
-     * @var array   読み込みチェーンに適用するフィルタのリスト
+     * @var array 読み込みチェーンに適用するフィルタのリスト
      */
-    protected $read     = [];
+    protected array $read     = [];
 
     /**
-     * @var array   書き込みチェーン、読み込みチェーン双方に適用するフィルタのリスト
+     * @var array 書き込みチェーン、読み込みチェーン双方に適用するフィルタのリスト
      */
-    protected $both     = [];
+    protected array $both     = [];
 
-    //==============================================
+    // ==============================================
     // static method
-    //==============================================
+    // ==============================================
     /**
      * ストリームフィルタスペックインスタンスを返します。
      *
-     * @param   array   $spec   スペック
-     *  [
-     *      'resource'  => フィルタの対象となるストリーム
-     *      'write'     => 書き込みチェーンに適用するフィルタのリスト
-     *      'read'      => 読み込みチェーンに適用するフィルタのリスト
-     *      'both'      => 書き込みチェーン、読み込みチェーン双方に適用するフィルタのリスト
-     *  ]
-     * @return  \fw3\streams\filters\utilitys\StreamFilterSpec このインスタンス
+     * @param  array            $spec スペック
+     *                                [
+     *                                'resource'  => フィルタの対象となるストリーム
+     *                                'write'     => 書き込みチェーンに適用するフィルタのリスト
+     *                                'read'      => 読み込みチェーンに適用するフィルタのリスト
+     *                                'both'      => 書き込みチェーン、読み込みチェーン双方に適用するフィルタのリスト
+     *                                ]
+     * @return StreamFilterSpec このインスタンス
      */
-    public static function factory(array $spec = []) : \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity
+    public static function factory(array $spec = []): StreamFilterSpecEntity
     {
         $instance   = new static();
 
         if (!empty($spec)) {
-            if (isset($spec['resource']) || array_key_exists('resource', $spec)) {
+            if (isset($spec['resource']) || \array_key_exists('resource', $spec)) {
                 $instance->resource($spec['resource']);
             }
 
-            if (isset($spec['write']) || array_key_exists('write', $spec)) {
+            if (isset($spec['write']) || \array_key_exists('write', $spec)) {
                 $instance->write($spec['write']);
             }
 
-            if (isset($spec['read']) || array_key_exists('read', $spec)) {
+            if (isset($spec['read']) || \array_key_exists('read', $spec)) {
                 $instance->read($spec['read']);
             }
 
-            if (isset($spec['both']) || array_key_exists('both', $spec)) {
+            if (isset($spec['both']) || \array_key_exists('both', $spec)) {
                 $instance->both($spec['both']);
             }
         }
@@ -155,9 +157,9 @@ class StreamFilterSpecEntity
         return $instance;
     }
 
-    //==============================================
+    // ==============================================
     // method
-    //==============================================
+    // ==============================================
     /**
      * constructor
      */
@@ -168,9 +170,9 @@ class StreamFilterSpecEntity
     /**
      * このインスタンスを複製し返します。
      *
-     * @return  \fw3\streams\filters\utilitys\StreamFilterSpec   複製されたこのインスタンス
+     * @return StreamFilterSpecEntity 複製されたこのインスタンス
      */
-    public function with()
+    public function with(): StreamFilterSpecEntity
     {
         return clone $this;
     }
@@ -178,24 +180,25 @@ class StreamFilterSpecEntity
     /**
      * フィルタの対象となるストリームを取得・設定します。
      *
-     * @param   null|string|\SplFileInfo|\SplFileObject $resource   フィルタの対象となるストリーム
-     * @return  string|\SplFileInfo|\SplFileObject|\fw3\streams\filters\utilitys\StreamFilterSpec  フィルタの対象となるストリームまたはこのインスタンス
+     * @param  null|string|\SplFileInfo|\SplFileObject             $resource フィルタの対象となるストリーム
+     * @return string|\SplFileInfo|\SplFileObject|StreamFilterSpec フィルタの対象となるストリームまたはこのインスタンス
      */
     public function resource($resource = null)
     {
-        if (func_num_args() === 0) {
+        if (\func_num_args() === 0) {
             return $resource;
         }
         $this->resource = $resource;
+
         return $this;
     }
 
     /**
      * フィルタの対象となるphp://stdinストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://stdinストリームを設定したストリームフィルタスペックエンティティ
+     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://stdinストリームを設定したストリームフィルタスペックエンティティ
      */
-    public function resourceStdin() : \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity
+    public function resourceStdin(): StreamFilterSpecEntity
     {
         return $this->resource(static::RESOURCE_PHP_STDIN);
     }
@@ -203,9 +206,9 @@ class StreamFilterSpecEntity
     /**
      * フィルタの対象となるphp://stdoutストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://stdoutストリームを設定したストリームフィルタスペックエンティティ
+     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://stdoutストリームを設定したストリームフィルタスペックエンティティ
      */
-    public function resourceStdout() : \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity
+    public function resourceStdout(): StreamFilterSpecEntity
     {
         return $this->resource(static::RESOURCE_PHP_STDOUT);
     }
@@ -213,9 +216,9 @@ class StreamFilterSpecEntity
     /**
      * フィルタの対象となるphp://inputストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://inputストリームを設定したストリームフィルタスペックエンティティ
+     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://inputストリームを設定したストリームフィルタスペックエンティティ
      */
-    public function resourceInput() : \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity
+    public function resourceInput(): StreamFilterSpecEntity
     {
         return $this->resource(static::RESOURCE_PHP_INPUT);
     }
@@ -223,9 +226,9 @@ class StreamFilterSpecEntity
     /**
      * フィルタの対象となるphp://outputストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://outputストリームを設定したストリームフィルタスペックエンティティ
+     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://outputストリームを設定したストリームフィルタスペックエンティティ
      */
-    public function resourceOutput() : \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity
+    public function resourceOutput(): StreamFilterSpecEntity
     {
         return $this->resource(static::RESOURCE_PHP_OUTPUT);
     }
@@ -233,9 +236,9 @@ class StreamFilterSpecEntity
     /**
      * フィルタの対象となるphp://fdストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://fdストリームを設定したストリームフィルタスペックエンティティ
+     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://fdストリームを設定したストリームフィルタスペックエンティティ
      */
-    public function resourceFd() : \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity
+    public function resourceFd(): StreamFilterSpecEntity
     {
         return $this->resource(static::RESOURCE_PHP_FD);
     }
@@ -243,9 +246,9 @@ class StreamFilterSpecEntity
     /**
      * フィルタの対象となるphp://memoryストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://memoryストリームを設定したストリームフィルタスペックエンティティ
+     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://memoryストリームを設定したストリームフィルタスペックエンティティ
      */
-    public function resourceMemory() : \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity
+    public function resourceMemory(): StreamFilterSpecEntity
     {
         return $this->resource(static::RESOURCE_PHP_MEMORY);
     }
@@ -253,9 +256,9 @@ class StreamFilterSpecEntity
     /**
      * フィルタの対象となるphp://tempストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://tempストリームを設定したストリームフィルタスペックエンティティ
+     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://tempストリームを設定したストリームフィルタスペックエンティティ
      */
-    public function resourceTemp() : \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity
+    public function resourceTemp(): StreamFilterSpecEntity
     {
         return $this->resource(static::RESOURCE_PHP_TEMP);
     }
@@ -263,15 +266,16 @@ class StreamFilterSpecEntity
     /**
      * 書き込みチェーンに適用するフィルタのリストを取得・設定します。
      *
-     * @param   null|array  $write  書き込みチェーンに適用するフィルタのリスト
-     * @return  array|\fw3\streams\filters\utilitys\StreamFilterSpec  書き込みチェーンに適用するフィルタのリストまたはこのインスタンス
+     * @param  null|array             $write 書き込みチェーンに適用するフィルタのリスト
+     * @return array|StreamFilterSpec 書き込みチェーンに適用するフィルタのリストまたはこのインスタンス
      */
-    public function write($write = null)
+    public function write(?array $write = null)
     {
-        if (func_num_args() === 0) {
+        if (\func_num_args() === 0) {
             return $write;
         }
         $this->write    = [];
+
         foreach ($write as $filter) {
             if ($filter instanceof StreamFilterSpecInterface) {
                 $this->appendWriteChain($filter);
@@ -279,21 +283,23 @@ class StreamFilterSpecEntity
                 $this->appendWriteChain(...(array) $filter);
             }
         }
+
         return $this;
     }
 
     /**
      * 読み込みチェーンに適用するフィルタのリストを取得・設定します。
      *
-     * @param   null|array  $read   読み込みチェーンに適用するフィルタのリスト
-     * @return  array|\fw3\streams\filters\utilitys\StreamFilterSpec  読み込みチェーンに適用するフィルタのリストまたはこのインスタンス
+     * @param  null|array             $read 読み込みチェーンに適用するフィルタのリスト
+     * @return array|StreamFilterSpec 読み込みチェーンに適用するフィルタのリストまたはこのインスタンス
      */
-    public function read($read = null)
+    public function read(?array $read = null)
     {
-        if (func_num_args() === 0) {
+        if (\func_num_args() === 0) {
             return $read;
         }
         $this->read = [];
+
         foreach ($read as $filter) {
             if ($filter instanceof StreamFilterSpecInterface) {
                 $this->appendReadChain($filter);
@@ -301,21 +307,23 @@ class StreamFilterSpecEntity
                 $this->appendReadChain(...(array) $filter);
             }
         }
+
         return $this;
     }
 
     /**
      * 書き込みチェーン、読み込みチェーン双方に適用するフィルタのリストを取得・設定します。
      *
-     * @param   null|array  $both   書き込みチェーン、読み込みチェーン双方に適用するフィルタのリスト
-     * @return  array|\fw3\streams\filters\utilitys\StreamFilterSpec  書き込みチェーン、読み込みチェーン双方に適用するフィルタのリストまたはこのインスタンス
+     * @param  null|array             $both 書き込みチェーン、読み込みチェーン双方に適用するフィルタのリスト
+     * @return array|StreamFilterSpec 書き込みチェーン、読み込みチェーン双方に適用するフィルタのリストまたはこのインスタンス
      */
-    public function both($both = null)
+    public function both(?array $both = null)
     {
-        if (func_num_args() === 0) {
+        if (\func_num_args() === 0) {
             return $both;
         }
         $this->both = [];
+
         foreach ($both as $filter) {
             if ($filter instanceof StreamFilterSpecInterface) {
                 $this->appendBothChain($filter);
@@ -323,172 +331,180 @@ class StreamFilterSpecEntity
                 $this->appendBothChain(...(array) $filter);
             }
         }
+
         return $this;
     }
 
     /**
      * 書き込みチェーンに適用するフィルタを追加します。
      *
-     * @param   \fw3\streams\filters\utilitys\specs\interfaces\StreamFilterSpecInterface|string  $filter 書き込みストリームフィルタ名
-     * @param   array   $filter_parameters          ストリームフィルタに追加するパラメータ
-     * @param   string  $filter_parameter_separator ストリームフィルタに追加するパラメータオプションのセパレータ
-     * @return  \fw3\streams\filters\utilitys\StreamFilterSpec このインスタンス
+     * @param  StreamFilterSpecInterface|string $filter                     書き込みストリームフィルタ名
+     * @param  array                            $filter_parameters          ストリームフィルタに追加するパラメータ
+     * @param  string                           $filter_parameter_separator ストリームフィルタに追加するパラメータオプションのセパレータ
+     * @return StreamFilterSpec                 このインスタンス
      */
-    public function appendWriteChain($filter, array $filter_parameters = [], string $filter_parameter_separator = self::PARAMETER_OPTION_SEPARATOR) : \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity
+    public function appendWriteChain($filter, array $filter_parameters = [], string $filter_parameter_separator = self::PARAMETER_OPTION_SEPARATOR): StreamFilterSpecEntity
     {
         $this->write[]  = [$filter, $filter_parameters, $filter_parameter_separator];
+
         return $this;
     }
 
     /**
      * 読み込みチェーンに適用するフィルタを追加します。
      *
-     * @param   \fw3\streams\filters\utilitys\specs\interfaces\StreamFilterSpecInterface|string  $filter 読み込みストリームフィルタ名
-     * @param   array   $filter_parameters          ストリームフィルタに追加するパラメータ
-     * @param   string  $filter_parameter_separator ストリームフィルタに追加するパラメータオプションのセパレータ
-     * @return  \fw3\streams\filters\utilitys\StreamFilterSpec このインスタンス
+     * @param  StreamFilterSpecInterface|string $filter                     読み込みストリームフィルタ名
+     * @param  array                            $filter_parameters          ストリームフィルタに追加するパラメータ
+     * @param  string                           $filter_parameter_separator ストリームフィルタに追加するパラメータオプションのセパレータ
+     * @return StreamFilterSpec                 このインスタンス
      */
-    public function appendReadChain($filter, array $filter_parameters = [], string $filter_parameter_separator = self::PARAMETER_OPTION_SEPARATOR) : \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity
+    public function appendReadChain($filter, array $filter_parameters = [], string $filter_parameter_separator = self::PARAMETER_OPTION_SEPARATOR): StreamFilterSpecEntity
     {
         $this->read[]  = [$filter, $filter_parameters, $filter_parameter_separator];
+
         return $this;
     }
 
     /**
      * 書き込みチェーン、読み込みチェーン双方に適用するフィルタを追加します。
      *
-     * @param   \fw3\streams\filters\utilitys\specs\interfaces\StreamFilterSpecInterface|string  $filter 書き込みチェーン、読み込みチェーン双方に適用するフィルタ名。
-     * @param   array   $filter_parameters          ストリームフィルタに追加するパラメータ
-     * @param   string  $filter_parameter_separator ストリームフィルタに追加するパラメータオプションのセパレータ
-     * @return  \fw3\streams\filters\utilitys\StreamFilterSpec このインスタンス
+     * @param  StreamFilterSpecInterface|string $filter                     書き込みチェーン、読み込みチェーン双方に適用するフィルタ名
+     * @param  array                            $filter_parameters          ストリームフィルタに追加するパラメータ
+     * @param  string                           $filter_parameter_separator ストリームフィルタに追加するパラメータオプションのセパレータ
+     * @return StreamFilterSpec                 このインスタンス
      */
-    public function appendBothChain($filter, array $filter_parameters = [], string $filter_parameter_separator = self::PARAMETER_OPTION_SEPARATOR) : \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity
+    public function appendBothChain($filter, array $filter_parameters = [], string $filter_parameter_separator = self::PARAMETER_OPTION_SEPARATOR): StreamFilterSpecEntity
     {
         $this->both[]  = [$filter, $filter_parameters, $filter_parameter_separator];
+
         return $this;
     }
 
     /**
      * 書き込みチェーンフィルタ文字列を構築し返します。
      *
-     * @return  string  書き込みチェーンフィルタ文字列
+     * @return string 書き込みチェーンフィルタ文字列
      */
-    public function buildWriteFilter() : string
+    public function buildWriteFilter(): string
     {
         $filters    = [];
 
         foreach ($this->write as $filter_set) {
             $filter = $filter_set[0];
+
             if ($filter instanceof StreamFilterSpecInterface) {
                 $filter = $filter->build();
             } else {
-                $parameter_option_separator = $filter_set[2] ?? static::PARAMETER_OPTION_SEPARATOR;
-                $filter_parameters  = (array) $filter_set[1] ?? [];
+                $parameter_option_separator = $filter_set[2]         ?? static::PARAMETER_OPTION_SEPARATOR;
+                $filter_parameters          = (array) $filter_set[1] ?? [];
 
                 if (!empty($filter_parameters)) {
-                    $filter = sprintf('%s%s%s', $filter[0], $parameter_option_separator, implode($parameter_option_separator, $filter_parameters));
+                    $filter = \sprintf('%s%s%s', $filter[0], $parameter_option_separator, \implode($parameter_option_separator, $filter_parameters));
                 } else {
                     $filter = $filter[0];
                 }
             }
 
-            $filters[]  = str_replace('/', '%2F', $filter);
+            $filters[]  = \str_replace('/', '%2F', $filter);
         }
 
         if (empty($filters)) {
             return '';
         }
 
-        return sprintf('write=%s', implode(static::PARAMETER_CHAIN_SEPARATOR, $filters));
+        return \sprintf('write=%s', \implode(static::PARAMETER_CHAIN_SEPARATOR, $filters));
     }
 
     /**
      * 読み込みチェーンフィルタ文字列を構築し返します。
      *
-     * @return  string  読み込みチェーンフィルタ文字列
+     * @return string 読み込みチェーンフィルタ文字列
      */
-    public function buildReadFilter() : string
+    public function buildReadFilter(): string
     {
         $filters    = [];
 
         foreach ($this->read as $filter_set) {
             $filter = $filter_set[0];
+
             if ($filter instanceof StreamFilterSpecInterface) {
                 $filter = $filter->build();
             } else {
-                $parameter_option_separator = $filter_set[2] ?? static::PARAMETER_OPTION_SEPARATOR;
-                $filter_parameters  = (array) $filter_set[1] ?? [];
+                $parameter_option_separator = $filter_set[2]         ?? static::PARAMETER_OPTION_SEPARATOR;
+                $filter_parameters          = (array) $filter_set[1] ?? [];
 
                 if (!empty($filter_parameters)) {
-                    $filter = sprintf('%s%s%s', $filter[0], $parameter_option_separator, implode($parameter_option_separator, $filter_parameters));
+                    $filter = \sprintf('%s%s%s', $filter[0], $parameter_option_separator, \implode($parameter_option_separator, $filter_parameters));
                 } else {
                     $filter = $filter[0];
                 }
             }
 
-            $filters[]  = str_replace('/', '%2F', $filter);
+            $filters[]  = \str_replace('/', '%2F', $filter);
         }
 
         if (empty($filters)) {
             return '';
         }
 
-        return sprintf('read=%s', implode(static::PARAMETER_CHAIN_SEPARATOR, $filters));
+        return \sprintf('read=%s', \implode(static::PARAMETER_CHAIN_SEPARATOR, $filters));
     }
 
     /**
      * 書き込みチェーン、読み込みチェーン双方に適用するフィルタ文字列を構築し返します。
      *
-     * @return  string  書き込みチェーン、読み込みチェーン双方に適用するフィルタ文字列
+     * @return string 書き込みチェーン、読み込みチェーン双方に適用するフィルタ文字列
      */
-    public function buildBothFilter() : string
+    public function buildBothFilter(): string
     {
         $filters    = [];
 
         foreach ($this->both as $filter_set) {
             $filter = $filter_set[0];
+
             if ($filter instanceof StreamFilterSpecInterface) {
                 $filter = $filter->build();
             } else {
-                $parameter_option_separator = $filter_set[2] ?? static::PARAMETER_OPTION_SEPARATOR;
-                $filter_parameters  = (array) $filter_set[1] ?? [];
+                $parameter_option_separator = $filter_set[2]         ?? static::PARAMETER_OPTION_SEPARATOR;
+                $filter_parameters          = (array) $filter_set[1] ?? [];
 
                 if (!empty($filter_parameters)) {
-                    $filter = sprintf('%s%s%s', $filter[0], $parameter_option_separator, implode($parameter_option_separator, $filter_parameters));
+                    $filter = \sprintf('%s%s%s', $filter[0], $parameter_option_separator, \implode($parameter_option_separator, $filter_parameters));
                 } else {
                     $filter = $filter[0];
                 }
             }
 
-            $filters[]  = str_replace('/', '%2F', $filter);
+            $filters[]  = \str_replace('/', '%2F', $filter);
         }
 
         if (empty($filters)) {
             return '';
         }
 
-        return sprintf('%s', implode(static::PARAMETER_CHAIN_SEPARATOR, $filters));
+        return \sprintf('%s', \implode(static::PARAMETER_CHAIN_SEPARATOR, $filters));
     }
 
     /**
      * リソース文字列を構築し返します。
      *
-     * @return  string  リソース文字列
+     * @return string リソース文字列
      */
-    public function buildResource() : string
+    public function buildResource(): string
     {
         if ($this->resource === null) {
             return '';
         }
-        return sprintf('resource=%s', (string) $this->resource);
+
+        return \sprintf('resource=%s', (string) $this->resource);
     }
 
     /**
      * フィルタストリーム設定文字列を構築し返します。
      *
-     * @return  string  フィルタストリーム設定文字列を構築し返します。
+     * @return string フィルタストリーム設定文字列を構築し返します
      */
-    public function build() : string
+    public function build(): string
     {
         $parameters = [
             'php://filter',
@@ -510,15 +526,15 @@ class StreamFilterSpecEntity
             $parameters[]   = $resource;
         }
 
-        return implode(static::PARAMETER_SEPARATOR, $parameters);
+        return \implode(static::PARAMETER_SEPARATOR, $parameters);
     }
 
     /**
      * フィルタストリーム設定文字列を構築し返します。
      *
-     * @return  string  フィルタストリーム設定文字列を構築し返します。
+     * @return string フィルタストリーム設定文字列を構築し返します
      */
-    public function __toString() : string
+    public function __toString(): string
     {
         return $this->build();
     }
@@ -526,9 +542,9 @@ class StreamFilterSpecEntity
     /**
      * __invoke
      *
-     * @return  string  フィルタストリーム設定文字列を構築し返します。
+     * @return string フィルタストリーム設定文字列を構築し返します
      */
-    public function __invoke() : string
+    public function __invoke(): string
     {
         return $this->build();
     }

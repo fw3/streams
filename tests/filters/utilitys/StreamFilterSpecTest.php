@@ -1,5 +1,6 @@
 <?php
-/**    _______       _______
+/**
+ *     _______       _______
  *    / ____/ |     / /__  /
  *   / /_   | | /| / / /_ <
  *  / __/   | |/ |/ /___/ /
@@ -20,15 +21,16 @@ declare(strict_types=1);
 
 namespace Tests\streams\filters\utilitys;
 
-use PHPUnit\Framework\TestCase;
 use fw3\streams\filters\ConvertEncodingFilter;
-use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
+use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\tests\streams\traits\StreamFilterTestTrait;
+use PHPUnit\Framework\TestCase;
 
 /**
  * ストリームフィルタスペックのテスト
+ * @internal
  */
 class StreamFilterSpecTest extends TestCase
 {
@@ -36,8 +38,10 @@ class StreamFilterSpecTest extends TestCase
 
     /**
      * Specインスタンスのテスト
+     *
+     * @test
      */
-    public function testSpec() : void
+    public function spec(): void
     {
         $streamFilterSpec                   = StreamFilterSpec::factory();
         $streamFilterConvertEncodingSpec    = StreamFilterConvertEncodingSpec::factory();
@@ -46,7 +50,7 @@ class StreamFilterSpecTest extends TestCase
         $this->assertEquals($streamFilterSpec->with(), $streamFilterSpec);
         $this->assertNotSame($streamFilterSpec->with(), $streamFilterSpec);
 
-        if (\version_compare(PHP_VERSION, '8.1')) {
+        if (\version_compare(\PHP_VERSION, '8.1')) {
             $this->assertSame($streamFilterSpec->with()->appendWriteChain($streamFilterConvertEncodingSpec->with()->setupForSjisOut())->build(), 'php://filter/write=convert.encoding.CP932:default');
         } else {
             $this->assertSame($streamFilterSpec->with()->appendWriteChain($streamFilterConvertEncodingSpec->with()->setupForSjisOut())->build(), 'php://filter/write=convert.encoding.SJIS-win:default');
@@ -62,8 +66,10 @@ class StreamFilterSpecTest extends TestCase
      * 指定された名前のストリームフィルタが登録されているかのテスト
      *
      * @runInSeparateProcess
+     *
+     * @test
      */
-    public function testExistStreamFilterName(): void
+    public function existStreamFilterName(): void
     {
         $this->assertFalse(StreamFilterSpec::registeredStreamFilterName(StreamFilterConvertEncodingSpec::registerFilterName()));
         $this->assertFalse(StreamFilterSpec::registeredStreamFilterName(StreamFilterConvertLinefeedSpec::registerFilterName()));
@@ -83,10 +89,12 @@ class StreamFilterSpecTest extends TestCase
 
     /**
      * CSV入出力を行うにあたって必要な事前・事後処理を行い、$callbackで指定された処理のテスト
+     *
+     * @test
      */
-    public function testDecorateForCsv(): void
+    public function decorateForCsv(): void
     {
-        //----------------------------------------------
+        // ----------------------------------------------
         $system_locale                  = ConvertEncodingFilter::startChangeLocale();
         $system_substitute_character    = ConvertEncodingFilter::startChangeSubstituteCharacter();
 
@@ -95,7 +103,7 @@ class StreamFilterSpecTest extends TestCase
             ['ソソソソん', 'ソ ソ ソ ソ ソ ', 'ソソソソん①㈱㌔髙﨑纊ソｱｲｳｴｵあいうえおabc'],
             ['ソソソソん', 'ソ ソ ソ ソ ソ ', 'ソソソソん①㈱㌔髙﨑纊ソｱｲｳｴｵあいうえおabc'],
         ];
-        $actual     = StreamFilterSpec::decorateForCsv(function () use ($expected) {
+        $actual     = StreamFilterSpec::decorateForCsv(function() use ($expected) {
             $data   = $expected;
 
             $spec   = StreamFilterSpec::resourceTemp()->write([
@@ -116,7 +124,8 @@ class StreamFilterSpecTest extends TestCase
             \rewind($fp);
 
             $rows   = [];
-            for (;($row = \fgetcsv($fp, 1024)) !== FALSE;$rows[] = $row);
+
+            for (;($row = \fgetcsv($fp, 1024)) !== false;$rows[] = $row);
 
             \fclose($fp);
 
@@ -131,7 +140,7 @@ class StreamFilterSpecTest extends TestCase
         ConvertEncodingFilter::endChangeLocale();
         $this->assertEquals($system_locale, ConvertEncodingFilter::currentLocale());
 
-        //----------------------------------------------
+        // ----------------------------------------------
         $system_locale                  = ConvertEncodingFilter::startChangeLocale();
         $system_substitute_character    = ConvertEncodingFilter::startChangeSubstituteCharacter();
 
@@ -142,7 +151,7 @@ class StreamFilterSpecTest extends TestCase
         $expected   = [
             ['U+29E3DU+93BDU+8257神'],
         ];
-        $actual     = StreamFilterSpec::decorateForCsv(function () use ($data) {
+        $actual     = StreamFilterSpec::decorateForCsv(function() use ($data) {
             $spec   = StreamFilterSpec::resourceTemp()->write([
                 StreamFilterConvertEncodingSpec::toSjisWin()->fromUtf8(),
                 StreamFilterConvertLinefeedSpec::toCrLf()->fromAll(),
@@ -161,7 +170,8 @@ class StreamFilterSpecTest extends TestCase
             \rewind($fp);
 
             $rows   = [];
-            for (;($row = \fgetcsv($fp, 1024)) !== FALSE;$rows[] = $row);
+
+            for (;($row = \fgetcsv($fp, 1024)) !== false;$rows[] = $row);
 
             \fclose($fp);
 
@@ -176,7 +186,7 @@ class StreamFilterSpecTest extends TestCase
         ConvertEncodingFilter::endChangeLocale();
         $this->assertEquals($system_locale, ConvertEncodingFilter::currentLocale());
 
-        //----------------------------------------------
+        // ----------------------------------------------
         $system_locale                  = ConvertEncodingFilter::startChangeLocale();
         $system_substitute_character    = ConvertEncodingFilter::startChangeSubstituteCharacter();
 
@@ -187,7 +197,7 @@ class StreamFilterSpecTest extends TestCase
         $expected   = [
             ['あかさたな'],
         ];
-        $actual     = StreamFilterSpec::decorateForCsv(function () use ($data) {
+        $actual     = StreamFilterSpec::decorateForCsv(function() use ($data) {
             $spec   = StreamFilterSpec::resourceTemp()->write([
                 StreamFilterConvertEncodingSpec::toSjisWin(),
                 StreamFilterConvertLinefeedSpec::toCrLf()->fromAll(),
@@ -206,7 +216,8 @@ class StreamFilterSpecTest extends TestCase
             \rewind($fp);
 
             $rows   = [];
-            for (;($row = \fgetcsv($fp, 1024)) !== FALSE;$rows[] = $row);
+
+            for (;($row = \fgetcsv($fp, 1024)) !== false;$rows[] = $row);
 
             \fclose($fp);
 
@@ -221,7 +232,7 @@ class StreamFilterSpecTest extends TestCase
         ConvertEncodingFilter::endChangeLocale();
         $this->assertEquals($system_locale, ConvertEncodingFilter::currentLocale());
 
-        //----------------------------------------------
+        // ----------------------------------------------
         $system_locale                  = ConvertEncodingFilter::startChangeLocale();
         $system_substitute_character    = ConvertEncodingFilter::startChangeSubstituteCharacter();
 
@@ -232,7 +243,7 @@ class StreamFilterSpecTest extends TestCase
         $expected   = [
             ['あかさたな'],
         ];
-        $actual     = StreamFilterSpec::decorateForCsv(function () use ($data) {
+        $actual     = StreamFilterSpec::decorateForCsv(function() use ($data) {
             $spec   = StreamFilterSpec::resourceTemp()->write([
                 StreamFilterConvertEncodingSpec::toSjisWin()->fromUtf8(),
                 StreamFilterConvertLinefeedSpec::toCrLf()->fromAll(),
@@ -251,7 +262,8 @@ class StreamFilterSpecTest extends TestCase
             \rewind($fp);
 
             $rows   = [];
-            for (;($row = \fgetcsv($fp, 1024)) !== FALSE;$rows[] = $row);
+
+            for (;($row = \fgetcsv($fp, 1024)) !== false;$rows[] = $row);
 
             \fclose($fp);
 
@@ -266,12 +278,12 @@ class StreamFilterSpecTest extends TestCase
         ConvertEncodingFilter::endChangeLocale();
         $this->assertEquals($system_locale, ConvertEncodingFilter::currentLocale());
 
-        //----------------------------------------------
+        // ----------------------------------------------
         $expected   = [
         ];
 
         try {
-            $actual     = StreamFilterSpec::decorateForCsv(function () use ($expected) {
+            $actual     = StreamFilterSpec::decorateForCsv(function() use ($expected) {
                 $data   = $expected;
 
                 if (empty($data)) {
@@ -296,7 +308,8 @@ class StreamFilterSpecTest extends TestCase
                 \rewind($fp);
 
                 $rows   = [];
-                for (;($row = \fgetcsv($fp, 1024)) !== FALSE;$rows[] = $row);
+
+                for (;($row = \fgetcsv($fp, 1024)) !== false;$rows[] = $row);
 
                 \fclose($fp);
 

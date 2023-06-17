@@ -312,6 +312,65 @@ $result = StreamFilterSpec::decorateForCsv(function () use ($path_to_csv, $rows)
 });
 ```
 
+
+##### 無難なCSV入出力：`\SqlFileObject`を利用した例
+
+```php
+<?php
+
+use fw3\streams\filters\utilitys\StreamFilterSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
+
+//==============================================
+// 設定
+//==============================================
+$rows   = [[]]; // データ
+
+$path_to_csv    = '';   // CSVファイルのパスを設定して下さい
+
+//----------------------------------------------
+// 一括即時実行
+//----------------------------------------------
+// フィルタ登録、ロカールと代替文字の設定と実行後のリストアも包括して実行します。
+// コールバックの実行中に例外が発生してもロカールと代替文字のリストアは実行されます。
+//----------------------------------------------
+$result = StreamFilterSpec::decorateForCsv(function () use ($path_to_csv, $rows) {
+    //==============================================
+    // 書き込み
+    //==============================================
+    // フィルタの設定
+    $spec   = StreamFilterSpec::resource($path_to_csv)->write([
+        StreamFilterConvertEncodingSpec::toSjisWin()->fromUtf8(),
+        StreamFilterConvertLinefeedSpec::toCrLf()->fromAll(),
+    ]);
+
+    // CP932、行末の改行コードCRLFとしてCSV書き込みを行う
+    $csvFile    = new \SqlFileObject($spec->build(), 'r+b');
+    foreach ($csvFile as $row) {
+        $file->fputcsv($row);
+    }
+
+    //==============================================
+    // 読み込み
+    //==============================================
+    // フィルタの設定
+    $spec   = StreamFilterSpec::resource($path_to_csv)->read([
+        StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin(),
+    ]);
+
+    // UTF-8としてCSV読み込みを行う（\SplFileObjectでも使用できます。）
+    $rows       = [];
+    $csvFile    = new \SqlFileObject($spec->build(), 'r+b');
+    $csvFile->setFlags(\SqlFileObject::READ_CSV);
+    foreach ($csvFile as $row) {
+        $rows[] = $row;
+    }
+
+    return $rows;
+});
+```
+
 ##### HTTP経由でのCSVダウンロード
 
 ```php

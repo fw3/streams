@@ -1,5 +1,6 @@
 <?php
-/**    _______       _______
+/**
+ *     _______       _______
  *    / ____/ |     / /__  /
  *   / /_   | | /| / / /_ <
  *  / __/   | |/ |/ /___/ /
@@ -35,9 +36,9 @@ trait StreamFilterSpecTrait
     /**
      * このインスタンスを複製し返します。
      *
-     * @return  \fw3\streams\filters\utilitys\specs\interfaces\StreamFilterSpecTrait 複製されたこのインスタンス
+     * @return StreamFilterSpecInterface 複製されたこのインスタンス
      */
-    public function with()
+    public function with(): StreamFilterSpecInterface
     {
         return clone $this;
     }
@@ -45,9 +46,9 @@ trait StreamFilterSpecTrait
     /**
      * フィルタストリーム設定文字列を構築し返します。
      *
-     * @return  string  フィルタストリーム設定文字列を構築し返します。
+     * @return string フィルタストリーム設定文字列を構築し返します
      */
-    public function __toString() : string
+    public function __toString(): string
     {
         return $this->build();
     }
@@ -55,9 +56,9 @@ trait StreamFilterSpecTrait
     /**
      * __invoke
      *
-     * @return  string  フィルタストリーム設定文字列を構築し返します。
+     * @return string フィルタストリーム設定文字列を構築し返します
      */
-    public function __invoke() : string
+    public function __invoke(): string
     {
         return $this->build();
     }

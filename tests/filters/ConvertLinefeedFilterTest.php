@@ -1,5 +1,6 @@
 <?php
-/**    _______       _______
+/**
+ *     _______       _______
  *    / ____/ |     / /__  /
  *   / /_   | | /| / / /_ <
  *  / __/   | |/ |/ /___/ /
@@ -20,122 +21,117 @@ declare(strict_types=1);
 
 namespace Tests\streams\filters;
 
-use PHPUnit\Framework\TestCase;
 use fw3\streams\filters\ConvertLinefeedFilter;
-use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
+use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\tests\streams\traits\StreamFilterTestTrait;
+use PHPUnit\Framework\TestCase;
 
 /**
  * 行末の改行コードを変換するストリームフィルタクラスのテスト
+ * @internal
  */
 class ConvertLinefeedFilterTest extends TestCase
 {
     use StreamFilterTestTrait;
 
     /**
-     * @var string  テストデータ：空文字
+     * @var string テストデータ：空文字
      */
     protected const TEST_DATA_EMPTY       = '';
 
     /**
-     * @var string  テストデータ：パターン1：CR
+     * @var string テストデータ：パターン1：CR
      */
     protected const TEST_DATA_ONLY_CR1    = "\r";
 
     /**
-     * @var string  テストデータ：パターン1：LF
+     * @var string テストデータ：パターン1：LF
      */
     protected const TEST_DATA_ONLY_LF1    = "\n";
 
     /**
-     * @var string  テストデータ：パターン1：CRLF
+     * @var string テストデータ：パターン1：CRLF
      */
     protected const TEST_DATA_ONLY_CRLF1  = "\r\n";
 
     /**
-     * @var string  テストデータ：パターン2：CR
+     * @var string テストデータ：パターン2：CR
      */
     protected const TEST_DATA_ONLY_CR2    = "\r\r";
 
     /**
-     * @var string  テストデータ：パターン2：LF
+     * @var string テストデータ：パターン2：LF
      */
     protected const TEST_DATA_ONLY_LF2    = "\n\n";
 
     /**
-     * @var string  テストデータ：パターン2：CRLF
+     * @var string テストデータ：パターン2：CRLF
      */
     protected const TEST_DATA_ONLY_CRLF2  = "\r\n\r\n";
 
     /**
-     * @var string  テストデータ：パターン3：CR
+     * @var string テストデータ：パターン3：CR
      */
     protected const TEST_DATA_ONLY_CR3    = "\r\r\r";
 
     /**
-     * @var string  テストデータ：パターン3：LF
+     * @var string テストデータ：パターン3：LF
      */
     protected const TEST_DATA_ONLY_LF3    = "\n\n\n";
 
     /**
-     * @var string  テストデータ：パターン3：CRLF
+     * @var string テストデータ：パターン3：CRLF
      */
     protected const TEST_DATA_ONLY_CRLF3  = "\r\n\r\n\r\n";
 
     /**
-     * @var string  テストデータ：パターン4：CR
+     * @var string テストデータ：パターン4：CR
      */
     protected const TEST_DATA_ONLY_CR4    = "\r\r\r\r";
 
     /**
-     * @var string  テストデータ：パターン4：LF
+     * @var string テストデータ：パターン4：LF
      */
     protected const TEST_DATA_ONLY_LF4    = "\n\n\n\n";
 
     /**
-     * @var string  テストデータ：パターン4：CRLF
+     * @var string テストデータ：パターン4：CRLF
      */
     protected const TEST_DATA_ONLY_CRLF4  = "\r\n\r\n\r\n\r\n";
 
     /**
-     * @var string  テストデータ：複雑な組み合わせ1
+     * @var string テストデータ：複雑な組み合わせ1
      */
     protected const TEST_DATA_COMPLEX1    = "\r\n\n\r";
 
     /**
-     * @var string  テストデータ：複雑な組み合わせ2
+     * @var string テストデータ：複雑な組み合わせ2
      */
     protected const TEST_DATA_COMPLEX2    = "\n\r\r\n";
 
     /**
-     * @var string  テストデータ：複雑な組み合わせ3
+     * @var string テストデータ：複雑な組み合わせ3
      */
     protected const TEST_DATA_COMPLEX3    = "\r\r\n\n";
 
     /**
-     * @var string  テストデータ：複雑な組み合わせ4
+     * @var string テストデータ：複雑な組み合わせ4
      */
     protected const TEST_DATA_COMPLEX4    = "\n\n\r\r";
 
     /**
-     * @var string  テストデータ：複雑な組み合わせ5
+     * @var string テストデータ：複雑な組み合わせ5
      */
     protected const TEST_DATA_COMPLEX5    = "\n\r";
 
     /**
-     * Setup
-     */
-    protected function setUp() : void
-    {
-        StreamFilterSpec::registerConvertLinefeedFilter();
-    }
-
-    /**
      * フィルタ名テスト
+     *
+     * @test
      */
-    public function testFilterName() : void
+    public function filterName(): void
     {
         StreamFilterSpec::registerConvertLinefeedFilter('aaaa');
         $this->assertWriteStreamFilterSame("\r\n\n", "\r\n\r", 'php://filter/write=aaaa.lf:cr/resource=php://temp');
@@ -148,11 +144,14 @@ class ConvertLinefeedFilterTest extends TestCase
 
     /**
      * 例外テスト
+     *
+     * @test
      */
-    public function testException() : void
+    public function exception(): void
     {
         try {
             $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF1, static::TEST_DATA_ONLY_LF1, [StreamFilterConvertLinefeedSpec::toLf()->fromLf()]);
+
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('変換前後の改行コード指定が同じです。to_linefeed:LF, from_linefeed:LF', $e->getMessage());
@@ -160,6 +159,7 @@ class ConvertLinefeedFilterTest extends TestCase
 
         try {
             $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF1, static::TEST_DATA_ONLY_LF1, 'php://filter/write=convert.linefeed.aaa:lf/resource=php://temp');
+
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('変換先の改行コード指定が無効です。to_linefeed:aaa', $e->getMessage());
@@ -167,6 +167,7 @@ class ConvertLinefeedFilterTest extends TestCase
 
         try {
             $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_LF1, static::TEST_DATA_ONLY_LF1, 'php://filter/write=convert.linefeed.cr:aaa/resource=php://temp');
+
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('変換元の改行コード指定が無効です。from_linefeed:aaa', $e->getMessage());
@@ -175,8 +176,10 @@ class ConvertLinefeedFilterTest extends TestCase
 
     /**
      * LFへの変換テスト
+     *
+     * @test
      */
-    public function testConvert2Lf() : void
+    public function convert2Lf(): void
     {
         $stream_wrapper = [StreamFilterConvertLinefeedSpec::toLf()->fromCr()];
         $this->assertWriteStreamFilterSame("\r\n\n", "\r\n\r", $stream_wrapper);
@@ -228,8 +231,10 @@ class ConvertLinefeedFilterTest extends TestCase
 
     /**
      * CRへの変換テスト
+     *
+     * @test
      */
-    public function testConvert2Cr() : void
+    public function convert2Cr(): void
     {
         $stream_wrapper = [StreamFilterConvertLinefeedSpec::toCr()->fromLf()];
         $this->assertWriteStreamFilterSame("\n\r\r", "\n\r\n", $stream_wrapper);
@@ -281,8 +286,10 @@ class ConvertLinefeedFilterTest extends TestCase
 
     /**
      * CRLFへの変換テスト
+     *
+     * @test
      */
-    public function testConvert2CrLf() : void
+    public function convert2CrLf(): void
     {
         $stream_wrapper = [StreamFilterConvertLinefeedSpec::toCrLf()->fromCr()];
         $this->assertWriteStreamFilterSame(static::TEST_DATA_ONLY_CRLF1, static::TEST_DATA_ONLY_CR1, $stream_wrapper);
@@ -331,10 +338,12 @@ class ConvertLinefeedFilterTest extends TestCase
 
     /**
      * i/7テスト
+     *
+     * @test
      */
-    public function testI01() : void
+    public function i01(): void
     {
-        $actual     = implode(ConvertLinefeedFilter::LF, [
+        $actual     = \implode(ConvertLinefeedFilter::LF, [
             '1111,1111',
             '2222,2222',
             '3333,3333',
@@ -363,5 +372,13 @@ class ConvertLinefeedFilterTest extends TestCase
 
         $stream_chunk_size  = 1024;
         $this->assertCsvInputStreamFilterSame($expected, $actual, $stream_chunk_size, $read_parameters);
+    }
+
+    /**
+     * Setup
+     */
+    protected function setUp(): void
+    {
+        StreamFilterSpec::registerConvertLinefeedFilter();
     }
 }

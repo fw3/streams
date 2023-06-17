@@ -1,5 +1,6 @@
 <?php
-/**    _______       _______
+/**
+ *     _______       _______
  *    / ____/ |     / /__  /
  *   / /_   | | /| / / /_ <
  *  / __/   | |/ |/ /___/ /
@@ -20,31 +21,32 @@ declare(strict_types=1);
 
 namespace fw3\tests\streams\filters;
 
-use PHPUnit\Framework\TestCase;
 use fw3\streams\filters\ConvertEncodingFilter;
-use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
+use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\tests\streams\traits\StreamFilterTestTrait;
+use PHPUnit\Framework\TestCase;
 
 /**
  * エンコーディングを変換するストリームフィルタクラスのテスト
+ * @internal
  */
 class ConvertEncodingFilterTest extends TestCase
 {
     use StreamFilterTestTrait;
 
     /**
-     * @var string  実行環境吸収用ラベル：Windows向け
+     * @var string 実行環境吸収用ラベル：Windows向け
      */
     protected const LOCALE_FOR_WINDOWS    = 'locale_for_windows';
 
     /**
-     * @var string  実行環境吸収用ラベル：Windows以外向け
+     * @var string 実行環境吸収用ラベル：Windows以外向け
      */
     protected const LOCALE_FOR_OTHER      = 'locale_for_other';
 
     /**
-     * @var array   実行環境吸収用ロカールマップ
+     * @var array 実行環境吸収用ロカールマップ
      */
     protected const LOCALE_MAP    = [
         self::LOCALE_FOR_WINDOWS    => [
@@ -60,83 +62,71 @@ class ConvertEncodingFilterTest extends TestCase
     ];
 
     /**
-     * @var string  テストデータ：ダメ文字開始
+     * @var string テストデータ：ダメ文字開始
      */
     protected const TEST_DATA_SIMPLE_TEXT1    = 'ソソソソん';
 
     /**
-     * @var string  テストデータ：ダメ文字+セパレータ
+     * @var string テストデータ：ダメ文字+セパレータ
      */
     protected const TEST_DATA_SIMPLE_TEXT2    = 'ソ ソ ソ ソ ソ ';
 
     /**
-     * @var string  テストデータ：複数のダメ文字
+     * @var string テストデータ：複数のダメ文字
      */
     protected const TEST_DATA_SIMPLE_TEXT3    = 'ソソソソん①㈱㌔髙﨑纊ソｱｲｳｴｵあいうえおabc';
 
     /**
-     * @var string  テストデータ：代替文字
+     * @var string テストデータ：代替文字
      */
-    protected const TEST_DATA_SIMPLE_TEXT4            = '1艗1鎽1𩸽1';
+    protected const TEST_DATA_SIMPLE_TEXT4           = '1艗1鎽1𩸽1';
 
     /**
-     * @var string  テストデータ：代替文字：消去
+     * @var string テストデータ：代替文字：消去
      */
-    protected const TEST_DATA_SIMPLE_TEXT4_NONE       = '1111';
+    protected const TEST_DATA_SIMPLE_TEXT4_NONE     = '1111';
 
     /**
-     * @var string  テストデータ：代替文字：unicode
+     * @var string テストデータ：代替文字：unicode
      */
-    protected const TEST_DATA_SIMPLE_TEXT4_LONG       = '1U+82571U+93BD1U+29E3D1';
+    protected const TEST_DATA_SIMPLE_TEXT4_LONG     = '1U+82571U+93BD1U+29E3D1';
 
     /**
-     * @var string  テストデータ：代替文字：untity
+     * @var string テストデータ：代替文字：untity
      */
-    protected const TEST_DATA_SIMPLE_TEXT4_ENTITY     = '1&#x8257;1&#x93BD;1&#x29E3D;1';
+    protected const TEST_DATA_SIMPLE_TEXT4_ENTITY   = '1&#x8257;1&#x93BD;1&#x29E3D;1';
 
     /**
-     * @var string  テストデータ：代替文字：任意文字
+     * @var string テストデータ：代替文字：任意文字
      */
-    protected const TEST_DATA_SIMPLE_TEXT4_WORD       = '1a1a1a1';
+    protected const TEST_DATA_SIMPLE_TEXT4_WORD     = '1a1a1a1';
 
     /**
-     * @var string  テストデータ：代替文字：任意文字用コードポイント：a
+     * @var string テストデータ：代替文字：任意文字用コードポイント：a
      */
     protected const TEST_DATA_SIMPLE_TEXT4_CODE_POINT = 0x0061;
 
     /**
-     * @var string  システムバックアップ：ロケール
+     * @var string システムバックアップ：ロケール
      */
-    protected $systemLocale                 = '';
+    protected string $systemLocale  = '';
 
     /**
-     * @var string  システムバックアップ：代替文字
+     * @var int|string システムバックアップ：代替文字
      */
     protected $systemSubstituteCharacter    = '';
 
     /**
-     * @var string  スタック検証用ロカールリスト
+     * @var null|array スタック検証用ロカールリスト
      */
-    protected $localeList                   = null;
-
-    /**
-     * Setup
-     */
-    protected function setUp() : void
-    {
-        $this->systemLocale                 = ConvertEncodingFilter::startChangeLocale();
-        $this->systemSubstituteCharacter    = ConvertEncodingFilter::startChangeSubstituteCharacter();
-        $this->localeList                   = static::LOCALE_MAP[\PHP_OS_FAMILY !== 'Windows' ? static::LOCALE_FOR_OTHER : static::LOCALE_FOR_WINDOWS];
-
-        ConvertEncodingFilter::detectOrder(ConvertEncodingFilter::DETECT_ORDER_DEFAULT);
-
-        StreamFilterSpec::registerConvertEncodingFilter();
-    }
+    protected ?array $localeList    = null;
 
     /**
      * フィルタ名テスト
+     *
+     * @test
      */
-    public function testFilterName() : void
+    public function filterName(): void
     {
         $expected_test_data_simple_text1    = \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'SJIS-win', 'UTF-8');
 
@@ -151,11 +141,14 @@ class ConvertEncodingFilterTest extends TestCase
 
     /**
      * 例外テスト
+     *
+     * @test
      */
-    public function testException() : void
+    public function exception(): void
     {
         try {
             $this->assertWriteStreamFilterSame('あ', 'あ', [StreamFilterConvertEncodingSpec::toUtf8()->fromUtf8()]);
+
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('変換前後のエンコーディング名が同じです。to_encoding:UTF-8, from_encoding:UTF-8', $e->getMessage());
@@ -164,6 +157,7 @@ class ConvertEncodingFilterTest extends TestCase
         try {
             $stream_wrapper = 'php://filter/write=convert.encoding.aaa:UTF-8/resource=php://temp';
             $this->assertWriteStreamFilterSame('あ', 'あ', $stream_wrapper);
+
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('変換先のエンコーディング名が無効です。to_encoding:aaa', $e->getMessage());
@@ -172,6 +166,7 @@ class ConvertEncodingFilterTest extends TestCase
         try {
             $stream_wrapper = 'php://filter/write=convert.encoding.UTF-8:aaa/resource=php://temp';
             $this->assertWriteStreamFilterSame('あ', 'あ', $stream_wrapper);
+
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('変換元のエンコーディング名が無効です。from_encoding:aaa', $e->getMessage());
@@ -180,11 +175,14 @@ class ConvertEncodingFilterTest extends TestCase
 
     /**
      * ロカール変更のテスト
+     *
+     * @test
      */
-    public function testLocale() : void
+    public function locale(): void
     {
         try {
             ConvertEncodingFilter::startChangeLocale('asdfqwer');
+
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('システムで使用できないロカールを指定されました。locale:asdfqwer', $e->getMessage());
@@ -201,14 +199,15 @@ class ConvertEncodingFilterTest extends TestCase
         $this->assertSame([$this->systemLocale], ConvertEncodingFilter::getLocaleStack());
         $this->assertSame(ConvertEncodingFilter::getSafeLocale(), ConvertEncodingFilter::currentLocale());
 
-        $locale_list = $this->localeList;
+        $locale_list            = $this->localeList;
         $start_locale_stack     = [];
+
         foreach ($locale_list as $locale) {
             $start_locale_stack[]   = ConvertEncodingFilter::startChangeLocale($locale);
         }
 
         \end($locale_list);
-        $this->assertSame(array_merge([$this->systemLocale, ConvertEncodingFilter::getSafeLocale()], array_slice($locale_list, 0, 2)), ConvertEncodingFilter::getLocaleStack());
+        $this->assertSame(\array_merge([$this->systemLocale, ConvertEncodingFilter::getSafeLocale()], \array_slice($locale_list, 0, 2)), ConvertEncodingFilter::getLocaleStack());
         $this->assertSame(\current($locale_list), ConvertEncodingFilter::currentLocale());
 
         $this->assertSame(\current($locale_list), ConvertEncodingFilter::endChangeLocale(true));
@@ -216,6 +215,7 @@ class ConvertEncodingFilterTest extends TestCase
         $this->assertSame($this->systemLocale, ConvertEncodingFilter::currentLocale());
 
         $start_locale_stack     = [];
+
         foreach ($locale_list as $locale) {
             $start_locale_stack[]   = ConvertEncodingFilter::startChangeLocale($locale);
         }
@@ -230,24 +230,28 @@ class ConvertEncodingFilterTest extends TestCase
 
         try {
             ConvertEncodingFilter::endChangeLocale();
+
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('ロカールスタックが空です。', $e->getMessage());
         }
 
-        krsort($end_locale_stack);
-        $this->assertSame($start_locale_stack, array_values($end_locale_stack));
+        \krsort($end_locale_stack);
+        $this->assertSame($start_locale_stack, \array_values($end_locale_stack));
 
         ConvertEncodingFilter::startChangeLocale();
     }
 
     /**
      * 文字コードが無効または存在しない場合の代替文字のテスト
+     *
+     * @test
      */
-    public function testSubstituteCharacter() : void
+    public function substituteCharacter(): void
     {
         try {
             ConvertEncodingFilter::startChangeSubstituteCharacter(ConvertEncodingFilter::SUBSTITUTE_CHARACTER_MAX_CODE_POINT + 1);
+
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('使用できない代替文字を与えられました。substitute_character:U+FFFF', $e->getMessage());
@@ -255,6 +259,7 @@ class ConvertEncodingFilterTest extends TestCase
 
         try {
             ConvertEncodingFilter::startChangeSubstituteCharacter('asdf');
+
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('使用できない代替文字設定を与えられました。substitute_character:asdf', $e->getMessage());
@@ -271,17 +276,18 @@ class ConvertEncodingFilterTest extends TestCase
         $this->assertSame([$this->systemSubstituteCharacter], ConvertEncodingFilter::getSubstituteCharacterStack());
         $this->assertSame(ConvertEncodingFilter::SUBSTITUTE_CHARACTER_DEFAULT, ConvertEncodingFilter::currentSubstituteCharacter());
 
-        $substitute_character_list      = array_values(ConvertEncodingFilter::SUBSTITUTE_CHARACTER_MAP);
+        $substitute_character_list      = \array_values(ConvertEncodingFilter::SUBSTITUTE_CHARACTER_MAP);
         $substitute_character_list[]    = ConvertEncodingFilter::SUBSTITUTE_CHARACTER_MAX_CODE_POINT;
         $substitute_character_list[]    = 1;
 
         $start_substitute_character_stack     = [];
+
         foreach ($substitute_character_list as $substitute_character) {
             $start_substitute_character_stack[]   = ConvertEncodingFilter::startChangeSubstituteCharacter($substitute_character);
         }
 
         \end($substitute_character_list);
-        $this->assertSame(array_merge([$this->systemSubstituteCharacter, ConvertEncodingFilter::SUBSTITUTE_CHARACTER_DEFAULT], array_slice($substitute_character_list, 0, 4)), ConvertEncodingFilter::getSubstituteCharacterStack());
+        $this->assertSame(\array_merge([$this->systemSubstituteCharacter, ConvertEncodingFilter::SUBSTITUTE_CHARACTER_DEFAULT], \array_slice($substitute_character_list, 0, 4)), ConvertEncodingFilter::getSubstituteCharacterStack());
         $this->assertSame(\current($substitute_character_list), ConvertEncodingFilter::currentSubstituteCharacter());
 
         $this->assertSame(\current($substitute_character_list), ConvertEncodingFilter::endChangeSubstituteCharacter(true));
@@ -289,6 +295,7 @@ class ConvertEncodingFilterTest extends TestCase
         $this->assertSame($this->systemSubstituteCharacter, ConvertEncodingFilter::currentSubstituteCharacter());
 
         $start_substitute_character_stack     = [];
+
         foreach ($substitute_character_list as $substitute_character) {
             $start_substitute_character_stack[]   = ConvertEncodingFilter::startChangeSubstituteCharacter($substitute_character);
         }
@@ -305,31 +312,38 @@ class ConvertEncodingFilterTest extends TestCase
 
         try {
             ConvertEncodingFilter::endChangeSubstituteCharacter();
+
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('代替文字コードスタックが空です。', $e->getMessage());
         }
 
-        krsort($end_substitute_character_stack);
-        $this->assertSame($start_substitute_character_stack, array_values($end_substitute_character_stack));
+        \krsort($end_substitute_character_stack);
+        $this->assertSame($start_substitute_character_stack, \array_values($end_substitute_character_stack));
 
         $stream_wrapper = [StreamFilterConvertEncodingSpec::toSjisWin()->fromUtf8()];
+
         switch ($this->systemSubstituteCharacter) {
             case ConvertEncodingFilter::SUBSTITUTE_CHARACTER_NONE:
                 $system_substitute_character_text = static::TEST_DATA_SIMPLE_TEXT4_NONE;
+
                 break;
             case ConvertEncodingFilter::SUBSTITUTE_CHARACTER_LONG:
                 $system_substitute_character_text = static::TEST_DATA_SIMPLE_TEXT4_LONG;
+
                 break;
             case ConvertEncodingFilter::SUBSTITUTE_CHARACTER_ENTITY:
                 $system_substitute_character_text = static::TEST_DATA_SIMPLE_TEXT4_ENTITY;
+
                 break;
             default:
                 $system_substitute_character    = $this->systemSubstituteCharacter;
+
                 if (\is_int($system_substitute_character)) {
                     $system_substitute_character    = $this->int2utf8($system_substitute_character);
                 }
-                $system_substitute_character_text = implode($system_substitute_character, [1, 1, 1, 1]);
+                $system_substitute_character_text = \implode($system_substitute_character, [1, 1, 1, 1]);
+
                 break;
         }
 
@@ -356,8 +370,10 @@ class ConvertEncodingFilterTest extends TestCase
 
     /**
      * システムデフォルトの文字エンコーディング検出順キャッシュを取得するテスト
+     *
+     * @test
      */
-    public function testDefaultDetectEncodingListCache() : void
+    public function defaultDetectEncodingListCache(): void
     {
         $mb_list_encodings  = \mb_list_encodings();
         $this->assertSame(\array_combine($mb_list_encodings, $mb_list_encodings), ConvertEncodingFilter::getDefaultDetectEncodingListCache());
@@ -365,8 +381,10 @@ class ConvertEncodingFilterTest extends TestCase
 
     /**
      * memory_limitの単位をintに変換するテスト
+     *
+     * @test
      */
-    public function testAdjustMemoryLimitUnit() : void
+    public function adjustMemoryLimitUnit(): void
     {
         $this->assertSame(1, ConvertEncodingFilter::adjustMemoryLimitUnit(1));
         $this->assertSame(1000, ConvertEncodingFilter::adjustMemoryLimitUnit(1000));
@@ -386,8 +404,10 @@ class ConvertEncodingFilterTest extends TestCase
 
     /**
      * Shift_JIS遅延判定文字列バッファサイズを変更するテスト
+     *
+     * @test
      */
-    public function testSjisSeparationPositionBufferSize() : void
+    public function sjisSeparationPositionBufferSize(): void
     {
         $this->assertSame(ConvertEncodingFilter::SJIS_CHECK_DEFERRED_BUFFER_SIZE_DEFAULT, ConvertEncodingFilter::sjisSeparationPositionBufferSize());
         $this->assertSame(ConvertEncodingFilter::SJIS_CHECK_DEFERRED_BUFFER_SIZE_DEFAULT, ConvertEncodingFilter::sjisSeparationPositionBufferSize(1024));
@@ -397,8 +417,10 @@ class ConvertEncodingFilterTest extends TestCase
 
         if ($memory_limit !== -1) {
             $sjis_check_deferred_buffer_size    = $memory_limit + 1;
+
             try {
                 ConvertEncodingFilter::sjisSeparationPositionBufferSize($sjis_check_deferred_buffer_size);
+
                 throw new \Exception();
             } catch (\Exception $e) {
                 $this->assertSame(\sprintf('現在の設定で利用できるメモリ量を超過しています。%s / %s', $sjis_check_deferred_buffer_size, $memory_limit), $e->getMessage());
@@ -413,8 +435,10 @@ class ConvertEncodingFilterTest extends TestCase
 
     /**
      * デフォルト時の変換元エンコーディングの自動検出順を変更するテスト
+     *
+     * @test
      */
-    public function testDetectOrder() : void
+    public function detectOrder(): void
     {
         $this->assertSame(ConvertEncodingFilter::DETECT_ORDER_DEFAULT, ConvertEncodingFilter::detectOrder());
         $this->assertSame(ConvertEncodingFilter::DETECT_ORDER_DEFAULT, ConvertEncodingFilter::detectOrder(\mb_detect_order()));
@@ -422,6 +446,7 @@ class ConvertEncodingFilterTest extends TestCase
 
         try {
             ConvertEncodingFilter::detectOrder(['aaa']);
+
             throw new \Exception();
         } catch (\Exception $e) {
             $this->assertSame('システムで使用できないエンコーディングを指定されました。encoding:aaa', $e->getMessage());
@@ -433,8 +458,10 @@ class ConvertEncodingFilterTest extends TestCase
 
     /**
      * Shift_JISへの変換テスト
+     *
+     * @test
      */
-    public function testConvert2Sjis() : void
+    public function convert2Sjis(): void
     {
         $expected_test_data_simple_text1    = \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'SJIS-win', 'UTF-8');
 
@@ -453,8 +480,10 @@ class ConvertEncodingFilterTest extends TestCase
 
     /**
      * EUC-JPへの変換テスト
+     *
+     * @test
      */
-    public function testConvert2Euc() : void
+    public function convert2Euc(): void
     {
         $expected_test_data_simple_text1    = \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'eucJP-win', 'UTF-8');
 
@@ -473,8 +502,10 @@ class ConvertEncodingFilterTest extends TestCase
 
     /**
      * UTF-8への変換テスト
+     *
+     * @test
      */
-    public function testConvert2UTF8() : void
+    public function convert2UTF8(): void
     {
         $expected_test_data_simple_text1    = static::TEST_DATA_SIMPLE_TEXT1;
 
@@ -493,8 +524,10 @@ class ConvertEncodingFilterTest extends TestCase
 
     /**
      * 複雑なケース1のテスト
+     *
+     * @test
      */
-    public function testComplex1() : void
+    public function complex1(): void
     {
         $stream_wrapper = [StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin()];
 
@@ -512,8 +545,10 @@ class ConvertEncodingFilterTest extends TestCase
 
     /**
      * 複雑なケース2のテスト
+     *
+     * @test
      */
-    public function testComplex2() : void
+    public function complex2(): void
     {
         $stream_wrapper = [StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin()];
 
@@ -531,8 +566,10 @@ class ConvertEncodingFilterTest extends TestCase
 
     /**
      * 複雑なケース3のテスト
+     *
+     * @test
      */
-    public function testComplex3() : void
+    public function complex3(): void
     {
         $stream_wrapper = [StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin()];
 
@@ -552,8 +589,10 @@ class ConvertEncodingFilterTest extends TestCase
 
     /**
      * 複雑なケース4のテスト
+     *
+     * @test
      */
-    public function testComplex4() : void
+    public function complex4(): void
     {
         $stream_wrapper = [StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin()];
 
@@ -570,9 +609,23 @@ class ConvertEncodingFilterTest extends TestCase
     }
 
     /**
+     * Setup
+     */
+    protected function setUp(): void
+    {
+        $this->systemLocale                 = ConvertEncodingFilter::startChangeLocale();
+        $this->systemSubstituteCharacter    = ConvertEncodingFilter::startChangeSubstituteCharacter();
+        $this->localeList                   = static::LOCALE_MAP[\PHP_OS_FAMILY !== 'Windows' ? static::LOCALE_FOR_OTHER : static::LOCALE_FOR_WINDOWS];
+
+        ConvertEncodingFilter::detectOrder(ConvertEncodingFilter::DETECT_ORDER_DEFAULT);
+
+        StreamFilterSpec::registerConvertEncodingFilter();
+    }
+
+    /**
      * Teardown
      */
-    protected function tearDown() : void
+    protected function tearDown(): void
     {
         ConvertEncodingFilter::endChangeSubstituteCharacter();
         ConvertEncodingFilter::endChangeLocale();

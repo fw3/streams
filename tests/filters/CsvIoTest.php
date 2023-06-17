@@ -1,5 +1,6 @@
 <?php
-/**    _______       _______
+/**
+ *     _______       _______
  *    / ____/ |     / /__  /
  *   / /_   | | /| / / /_ <
  *  / __/   | |/ |/ /___/ /
@@ -20,51 +21,43 @@ declare(strict_types=1);
 
 namespace Tests\streams\filters;
 
-use PHPUnit\Framework\TestCase;
 use fw3\streams\filters\ConvertEncodingFilter;
 use fw3\streams\filters\ConvertLinefeedFilter;
-use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
+use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\tests\streams\traits\StreamFilterTestTrait;
+use PHPUnit\Framework\TestCase;
 
 /**
  * エンコーディングを変換するストリームフィルタクラスのテスト
+ * @internal
  */
 class CsvIoTest extends TestCase
 {
     use StreamFilterTestTrait;
 
     /**
-     * @var string  テストデータ：ダメ文字開始
+     * @var string テストデータ：ダメ文字開始
      */
     protected const TEST_DATA_SIMPLE_TEXT1    = 'ソソソソん';
 
     /**
-     * @var string  テストデータ：ダメ文字+セパレータ
+     * @var string テストデータ：ダメ文字+セパレータ
      */
     protected const TEST_DATA_SIMPLE_TEXT2    = 'ソ ソ ソ ソ ソ ';
 
     /**
-     * @var string  テストデータ：複数のダメ文字
+     * @var string テストデータ：複数のダメ文字
      */
     protected const TEST_DATA_SIMPLE_TEXT3    = 'ソソソソん①㈱㌔髙﨑纊ソｱｲｳｴｵあいうえおabc';
 
     /**
-     * Setup
-     */
-    protected function setUp() : void
-    {
-        StreamFilterSpec::registerConvertEncodingFilter();
-        StreamFilterSpec::registerConvertLinefeedFilter();
-
-        ConvertEncodingFilter::startChangeLocale();
-    }
-
-    /**
      * Windows向けCSV出力テスト
+     *
+     * @test
      */
-    public function testCsvOutput() : void
+    public function csvOutput(): void
     {
         $write_parameters   = [
             StreamFilterConvertEncodingSpec::setupForSjisOut(),
@@ -74,11 +67,11 @@ class CsvIoTest extends TestCase
         $expected   = \mb_convert_encoding(\implode(
             ConvertLinefeedFilter::CRLF,
             [
-                \implode(',', [static::TEST_DATA_SIMPLE_TEXT1, '"'. static::TEST_DATA_SIMPLE_TEXT2 .'"', static::TEST_DATA_SIMPLE_TEXT3]),
-                \implode(',', ['"'. static::TEST_DATA_SIMPLE_TEXT2 .'"', static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1]),
-                \implode(',', [static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1, '"'. static::TEST_DATA_SIMPLE_TEXT2 .'"']),
-                ''
-            ]
+                \implode(',', [static::TEST_DATA_SIMPLE_TEXT1, '"' . static::TEST_DATA_SIMPLE_TEXT2 . '"', static::TEST_DATA_SIMPLE_TEXT3]),
+                \implode(',', ['"' . static::TEST_DATA_SIMPLE_TEXT2 . '"', static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1]),
+                \implode(',', [static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1, '"' . static::TEST_DATA_SIMPLE_TEXT2 . '"']),
+                '',
+            ],
         ), 'SJIS-win', 'UTF-8');
 
         $csv_data   = [
@@ -94,8 +87,10 @@ class CsvIoTest extends TestCase
 
     /**
      * Windows向けCSV入力テスト
+     *
+     * @test
      */
-    public function testCsvInput() : void
+    public function csvInput(): void
     {
         $read_parameters    = [
             StreamFilterConvertEncodingSpec::setupForUtf8Out(),
@@ -110,11 +105,11 @@ class CsvIoTest extends TestCase
         $csv_text   = \mb_convert_encoding(\implode(
             ConvertLinefeedFilter::CRLF,
             [
-                \implode(',', [static::TEST_DATA_SIMPLE_TEXT1, '"'. static::TEST_DATA_SIMPLE_TEXT2 .'"', static::TEST_DATA_SIMPLE_TEXT3]),
-                \implode(',', ['"'. static::TEST_DATA_SIMPLE_TEXT2 .'"', static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1]),
-                \implode(',', [static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1, '"'. static::TEST_DATA_SIMPLE_TEXT2 .'"']),
-                ''
-            ]
+                \implode(',', [static::TEST_DATA_SIMPLE_TEXT1, '"' . static::TEST_DATA_SIMPLE_TEXT2 . '"', static::TEST_DATA_SIMPLE_TEXT3]),
+                \implode(',', ['"' . static::TEST_DATA_SIMPLE_TEXT2 . '"', static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1]),
+                \implode(',', [static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1, '"' . static::TEST_DATA_SIMPLE_TEXT2 . '"']),
+                '',
+            ],
         ), 'SJIS-win', 'UTF-8');
 
         $stream_chunk_size  = 1024;
@@ -123,9 +118,20 @@ class CsvIoTest extends TestCase
     }
 
     /**
+     * Setup
+     */
+    protected function setUp(): void
+    {
+        StreamFilterSpec::registerConvertEncodingFilter();
+        StreamFilterSpec::registerConvertLinefeedFilter();
+
+        ConvertEncodingFilter::startChangeLocale();
+    }
+
+    /**
      * Teardown
      */
-    protected function tearDown() : void
+    protected function tearDown(): void
     {
         ConvertEncodingFilter::endChangeLocale();
     }
