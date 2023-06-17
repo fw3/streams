@@ -1,5 +1,6 @@
 <?php
-/**    _______       _______
+/**
+ *     _______       _______
  *    / ____/ |     / /__  /
  *   / /_   | | /| / / /_ <
  *  / __/   | |/ |/ /___/ /
@@ -28,28 +29,28 @@ interface StreamFilterSpecInterface
     /**
      * このインスタンスを複製し返します。
      *
-     * @return  \fw3\streams\filters\utilitys\specs\interfaces\StreamFilterSpecInterface 複製されたこのインスタンス
+     * @return StreamFilterSpecInterface 複製されたこのインスタンス
      */
-    public function with();
+    public function with(): StreamFilterSpecInterface;
 
     /**
      * チェーンフィルタ用文字列を構築して返します。
      *
-     * @return  string  チェーンフィルタ用文字列
+     * @return string チェーンフィルタ用文字列
      */
-    public function build() : string;
+    public function build(): string;
 
     /**
      * フィルタストリーム設定文字列を構築し返します。
      *
-     * @return  string  フィルタストリーム設定文字列を構築し返します。
+     * @return string フィルタストリーム設定文字列を構築し返します
      */
-    public function __toString() : string;
+    public function __toString(): string;
 
     /**
      * __invoke
      *
-     * @return  string  フィルタストリーム設定文字列を構築し返します。
+     * @return string フィルタストリーム設定文字列を構築し返します
      */
-    public function __invoke() : string;
+    public function __invoke(): string;
 }

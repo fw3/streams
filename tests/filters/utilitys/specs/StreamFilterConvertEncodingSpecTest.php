@@ -1,5 +1,6 @@
 <?php
-/**    _______       _______
+/**
+ *     _______       _______
  *    / ____/ |     / /__  /
  *   / /_   | | /| / / /_ <
  *  / __/   | |/ |/ /___/ /
@@ -20,12 +21,13 @@ declare(strict_types=1);
 
 namespace Tests\streams\filters\utilitys\specs;
 
-use PHPUnit\Framework\TestCase;
-use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
+use fw3\streams\filters\utilitys\StreamFilterSpec;
+use PHPUnit\Framework\TestCase;
 
 /**
  * ストリームフィルタ：ConvertEncodingFilterSpecのテスト
+ * @internal
  */
 class StreamFilterConvertEncodingSpecTest extends TestCase
 {
@@ -33,8 +35,10 @@ class StreamFilterConvertEncodingSpecTest extends TestCase
      * 現在のフィルタ名のストリームフィルタが登録されているかのテスト
      *
      * @runInSeparateProcess
+     *
+     * @test
      */
-    public function testRegisteredFilterName()
+    public function registeredFilterName(): void
     {
         $this->assertFalse(StreamFilterConvertEncodingSpec::registeredFilterName());
 

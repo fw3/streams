@@ -1,5 +1,6 @@
 <?php
-/**    _______       _______
+/**
+ *     _______       _______
  *    / ____/ |     / /__  /
  *   / /_   | | /| / / /_ <
  *  / __/   | |/ |/ /___/ /
@@ -21,9 +22,9 @@ declare(strict_types=1);
 namespace fw3\streams\filters\utilitys\specs\entitys;
 
 use fw3\streams\filters\ConvertEncodingFilter;
-use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
 use fw3\streams\filters\utilitys\specs\interfaces\StreamFilterSpecInterface;
 use fw3\streams\filters\utilitys\specs\interfaces\StreamFilterSpecTrait;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
 
 /**
  * ストリームフィルタスペックエンティティ：ConvertEncodingFilter
@@ -32,111 +33,111 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
 {
     use StreamFilterSpecTrait;
 
-    //==============================================
+    // ==============================================
     // const
-    //==============================================
+    // ==============================================
     // フィルタ名
-    //----------------------------------------------
+    // ----------------------------------------------
     /**
-     * @var string  デフォルトフィルタ名
+     * @var string デフォルトフィルタ名
      */
     public const DEFAULT_FILTER_NAME    = 'convert.encoding';
 
-    //----------------------------------------------
+    // ----------------------------------------------
     // フィルタパラメータ
-    //----------------------------------------------
+    // ----------------------------------------------
     /**
-     * @var string  パラメータオプション間のセパレータ
+     * @var string パラメータオプション間のセパレータ
      */
     public const PARAMETER_OPTION_SEPARATOR = ':';
 
-    //----------------------------------------------
+    // ----------------------------------------------
     // Encoding
-    //----------------------------------------------
+    // ----------------------------------------------
     /**
-     * @var string  変換元のエンコーディング：省略された場合のデフォルト値 （より精度の高い文字エンコーディング判定を行う）
+     * @var string 変換元のエンコーディング：省略された場合のデフォルト値 （より精度の高い文字エンコーディング判定を行う）
      */
     public const FROM_ENCODING_DEFAULT  = ConvertEncodingFilter::FROM_ENCODING_DEFAULT;
 
     /**
-     * @var string  変換元のエンコーディング：auto
+     * @var string 変換元のエンコーディング：auto
      */
     public const FROM_ENCODING_AUTO     = ConvertEncodingFilter::FROM_ENCODING_AUTO;
 
     /**
-     * @var array   変換元文字列に対してエンコーディング検出を行う変換元エンコーディングマップ
+     * @var array 変換元文字列に対してエンコーディング検出を行う変換元エンコーディングマップ
      */
     public const DETECT_FROM_ENCODING_MAP   = ConvertEncodingFilter::DETECT_FROM_ENCODING_MAP;
 
     /**
-     * @var string  日本語処理系で多用するエンコーディング：UTF-8
+     * @var string 日本語処理系で多用するエンコーディング：UTF-8
      */
     public const ENCODING_NAME_UTF8         = ConvertEncodingFilter::ENCODING_NAME_UTF8;
 
     /**
-     * @var string  日本語処理系で多用するエンコーディング：Shift_JIS（Windows-31J）
+     * @var string 日本語処理系で多用するエンコーディング：Shift_JIS（Windows-31J）
      */
     public const ENCODING_NAME_SJIS_WIN     = ConvertEncodingFilter::ENCODING_NAME_SJIS_WIN;
 
     /**
-     * @var string  日本語処理系で多用するエンコーディング：CP932（Shift_JIS（Windows-31J））
-     *              PHP8.1での誤った修正によりPHP8.1時点ではSJIS-winではなくCP932を利用する必要がある。
+     * @var string 日本語処理系で多用するエンコーディング：CP932（Shift_JIS（Windows-31J））
+     *             PHP8.1での誤った修正によりPHP8.1時点ではSJIS-winではなくCP932を利用する必要がある。
      */
-    const ENCODING_NAME_CP932   = ConvertEncodingFilter::ENCODING_NAME_CP932;
+    public const ENCODING_NAME_CP932   = ConvertEncodingFilter::ENCODING_NAME_CP932;
 
     /**
-     * @var string  日本語処理系で多用するエンコーディング：EUC-JP（Windows-31JのEUC-JP互換表現）
+     * @var string 日本語処理系で多用するエンコーディング：EUC-JP（Windows-31JのEUC-JP互換表現）
      */
     public const ENCODING_NAME_EUCJP_WIN    = ConvertEncodingFilter::ENCODING_NAME_EUCJP_WIN;
 
     /**
-     * @var string  デフォルトの変換後文字エンコーディング
+     * @var string デフォルトの変換後文字エンコーディング
      */
     public const DEFAULT_TO_ENCODING    = self::ENCODING_NAME_UTF8;
 
     /**
-     * @var string  デフォルトの変換前文字エンコーディング
+     * @var string デフォルトの変換前文字エンコーディング
      */
     public const DEFAULT_FROM_ENCODING  = self::FROM_ENCODING_DEFAULT;
 
-    //==============================================
+    // ==============================================
     // property
-    //==============================================
+    // ==============================================
     // フィルタパラメータ
-    //----------------------------------------------
+    // ----------------------------------------------
     /**
-     * @var array   変換後の文字エンコーディング
+     * @var string 変換後の文字エンコーディング
      */
-    protected $toEncoding   = self::DEFAULT_TO_ENCODING;
+    protected string $toEncoding   = self::DEFAULT_TO_ENCODING;
 
     /**
-     * @var string  変換前の文字エンコーディング
+     * @var string 変換前の文字エンコーディング
      */
-    protected $fromEncoding = self::DEFAULT_FROM_ENCODING;
+    protected string $fromEncoding = self::DEFAULT_FROM_ENCODING;
 
-    //==============================================
+    // ==============================================
     // static method
-    //==============================================
+    // ==============================================
     /**
      * ストリームフィルタスペックインスタンスを返します。
      *
-     * @param   array   $spec   スペック
-     *  [
-     *      'to_encoding'   => 変換後のエンコーディング
-     *      'from_encoding' => 変換元のエンコーディング
-     *  ]
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    このインスタンス
+     * @param  array                                 $spec スペック
+     *                                                     [
+     *                                                     'to_encoding'   => 変換後のエンコーディング
+     *                                                     'from_encoding' => 変換元のエンコーディング
+     *                                                     ]
+     * @return StreamFilterConvertEncodingSpecEntity このインスタンス
      */
-    public static function factory(array $spec = []) : \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity
+    public static function factory(array $spec = []): StreamFilterConvertEncodingSpecEntity
     {
         $instance   = new static();
 
         if (!empty($spec)) {
-            if (isset($spec['to_encoding']) || array_key_exists('to_encoding', $spec)) {
+            if (isset($spec['to_encoding']) || \array_key_exists('to_encoding', $spec)) {
                 $instance->to($spec['to_encoding']);
             }
 
-            if (isset($spec['from_encoding']) || array_key_exists('from_encoding', $spec)) {
+            if (isset($spec['from_encoding']) || \array_key_exists('from_encoding', $spec)) {
                 $instance->from($spec['from_encoding']);
             }
         }
@@ -144,9 +145,9 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
         return $instance;
     }
 
-    //==============================================
+    // ==============================================
     // method
-    //==============================================
+    // ==============================================
     /**
      * 変換後の文字エンコーディングを取得・設定します。
      *
@@ -154,8 +155,8 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
      * PHP8.1での誤った修正により`SJIS-win`は削除されました。
      * 過去実装でも極力そのまま動作させるために、内部的にはCP932を設定したものとみなし、処理を続行させます。
      *
-     * @param   null|string $to_encoding    変換後の文字エンコーディング
-     * @return  string|\fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity     変換後の文字エンコーディングまたはこのインスタンス
+     * @param  null|string                                  $to_encoding 変換後の文字エンコーディング
+     * @return string|StreamFilterConvertEncodingSpecEntity 変換後の文字エンコーディングまたはこのインスタンス
      */
     public function to(?string $to_encoding = null)
     {
@@ -163,7 +164,7 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
             return $this->toEncoding;
         }
 
-        if (\version_compare(PHP_VERSION, '8.1')) {
+        if (\version_compare(\PHP_VERSION, '8.1')) {
             if ($to_encoding === static::ENCODING_NAME_SJIS_WIN) {
                 $to_encoding    = static::ENCODING_NAME_CP932;
             }
@@ -174,15 +175,16 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
         }
 
         $this->toEncoding = $to_encoding;
+
         return $this;
     }
 
     /**
      * 変換後の文字エンコーディングをUTF8として設定したスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換後の文字エンコーディングをUTF8として設定したスペックエンティティ
+     * @return StreamFilterConvertEncodingSpecEntity 変換後の文字エンコーディングをUTF8として設定したスペックエンティティ
      */
-    public function toUtf8()
+    public function toUtf8(): StreamFilterConvertEncodingSpecEntity
     {
         return $this->to(static::ENCODING_NAME_UTF8);
     }
@@ -194,9 +196,9 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
      * PHP8.1での誤った修正により`SJIS-win`は削除されました。
      * 過去実装でも極力そのまま動作させるために、内部的にはCP932を設定したものとみなし、処理を続行させます。
      *
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換後の文字エンコーディングをSJIS-winとして設定したスペックエンティティ
+     * @return StreamFilterConvertEncodingSpecEntity 変換後の文字エンコーディングをSJIS-winとして設定したスペックエンティティ
      */
-    public function toSjisWin()
+    public function toSjisWin(): StreamFilterConvertEncodingSpecEntity
     {
         return $this->to(static::ENCODING_NAME_SJIS_WIN);
     }
@@ -204,9 +206,9 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
     /**
      * 変換後の文字エンコーディングをCP932として設定したスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換後の文字エンコーディングをCP932として設定したスペックエンティティ
+     * @return StreamFilterConvertEncodingSpecEntity 変換後の文字エンコーディングをCP932として設定したスペックエンティティ
      */
-    public function toCP932()
+    public function toCP932(): StreamFilterConvertEncodingSpecEntity
     {
         return $this->to(static::ENCODING_NAME_CP932);
     }
@@ -214,9 +216,9 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
     /**
      * 変換後の文字エンコーディングをeucJP-winとして設定したスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換後の文字エンコーディングをeucJP-winとして設定したスペックエンティティ
+     * @return StreamFilterConvertEncodingSpecEntity 変換後の文字エンコーディングをeucJP-winとして設定したスペックエンティティ
      */
-    public function toEucJpWin()
+    public function toEucJpWin(): StreamFilterConvertEncodingSpecEntity
     {
         return $this->to(static::ENCODING_NAME_EUCJP_WIN);
     }
@@ -228,8 +230,8 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
      * PHP8.1での誤った修正により`SJIS-win`は削除されました。
      * 過去実装でも極力そのまま動作させるために、内部的にはCP932を設定したものとみなし、処理を続行させます。
      *
-     * @param   null|string $from_encoding  変換前の文字エンコーディング
-     * @return  string|\fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity     変換前の文字エンコーディングまたはこのインスタンス
+     * @param  null|string                                  $from_encoding 変換前の文字エンコーディング
+     * @return string|StreamFilterConvertEncodingSpecEntity 変換前の文字エンコーディングまたはこのインスタンス
      */
     public function from(?string $from_encoding = null)
     {
@@ -237,7 +239,7 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
             return $this->fromEncoding;
         }
 
-        if (\version_compare(PHP_VERSION, '8.1')) {
+        if (\version_compare(\PHP_VERSION, '8.1')) {
             if ($from_encoding === static::ENCODING_NAME_SJIS_WIN) {
                 $from_encoding  = static::ENCODING_NAME_CP932;
             }
@@ -248,15 +250,16 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
         }
 
         $this->fromEncoding = $from_encoding;
+
         return $this;
     }
 
     /**
      * 変換前の文字エンコーディングをUTF8として設定したスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換前の文字エンコーディングをUTF8として設定したスペックエンティティ
+     * @return StreamFilterConvertEncodingSpecEntity 変換前の文字エンコーディングをUTF8として設定したスペックエンティティ
      */
-    public function fromUtf8()
+    public function fromUtf8(): StreamFilterConvertEncodingSpecEntity
     {
         return $this->from(static::ENCODING_NAME_UTF8);
     }
@@ -268,9 +271,9 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
      * PHP8.1での誤った修正により`SJIS-win`は削除されました。
      * 過去実装でも極力そのまま動作させるために、内部的にはCP932を設定したものとみなし、処理を続行させます。
      *
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換前の文字エンコーディングをSJIS-winとして設定したスペックエンティティ
+     * @return StreamFilterConvertEncodingSpecEntity 変換前の文字エンコーディングをSJIS-winとして設定したスペックエンティティ
      */
-    public function fromSjisWin()
+    public function fromSjisWin(): StreamFilterConvertEncodingSpecEntity
     {
         return $this->from(static::ENCODING_NAME_SJIS_WIN);
     }
@@ -278,9 +281,9 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
     /**
      * 変換前の文字エンコーディングをCP932として設定したスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換前の文字エンコーディングをCP932として設定したスペックエンティティ
+     * @return StreamFilterConvertEncodingSpecEntity 変換前の文字エンコーディングをCP932として設定したスペックエンティティ
      */
-    public function fromCP932()
+    public function fromCP932(): StreamFilterConvertEncodingSpecEntity
     {
         return $this->from(static::ENCODING_NAME_CP932);
     }
@@ -288,9 +291,9 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
     /**
      * 変換前の文字エンコーディングをeucJP-winとして設定したスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換前の文字エンコーディングをeucJP-winとして設定したスペックエンティティ
+     * @return StreamFilterConvertEncodingSpecEntity 変換前の文字エンコーディングをeucJP-winとして設定したスペックエンティティ
      */
-    public function fromEucjpWin()
+    public function fromEucjpWin(): StreamFilterConvertEncodingSpecEntity
     {
         return $this->from(static::ENCODING_NAME_EUCJP_WIN);
     }
@@ -298,9 +301,9 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
     /**
      * 変換前の文字エンコーディングをdefaultとして設定したスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換前の文字エンコーディングをdefaultとして設定したスペックエンティティ
+     * @return StreamFilterConvertEncodingSpecEntity 変換前の文字エンコーディングをdefaultとして設定したスペックエンティティ
      */
-    public function fromDefault()
+    public function fromDefault(): StreamFilterConvertEncodingSpecEntity
     {
         return $this->from(static::FROM_ENCODING_DEFAULT);
     }
@@ -308,9 +311,9 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
     /**
      * 変換前の文字エンコーディングをautoとして設定したスペックエンティティを返します。
      *
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    変換前の文字エンコーディングをautoとして設定したスペックエンティティ
+     * @return StreamFilterConvertEncodingSpecEntity 変換前の文字エンコーディングをautoとして設定したスペックエンティティ
      */
-    public function fromAuto()
+    public function fromAuto(): StreamFilterConvertEncodingSpecEntity
     {
         return $this->from(static::FROM_ENCODING_AUTO);
     }
@@ -318,20 +321,20 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
     /**
      * チェーンフィルタ用文字列を構築して返します。
      *
-     * @return  string  チェーンフィルタ用文字列
+     * @return string チェーンフィルタ用文字列
      */
-    public function build() : string
+    public function build(): string
     {
-        return sprintf('%s.%s%s%s', StreamFilterConvertEncodingSpec::filterName(), $this->toEncoding, static::PARAMETER_OPTION_SEPARATOR, $this->fromEncoding);
+        return \sprintf('%s.%s%s%s', StreamFilterConvertEncodingSpec::filterName(), $this->toEncoding, static::PARAMETER_OPTION_SEPARATOR, $this->fromEncoding);
     }
 
     /**
      * Shift_JIS出力用の設定を行います。
      *
-     * @param   string  $from_encoding  変換前文字列エンコーディング
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    このインスタンス
+     * @param  string                                $from_encoding 変換前文字列エンコーディング
+     * @return StreamFilterConvertEncodingSpecEntity このインスタンス
      */
-    public function setupForSjisOut($from_encoding = self::DEFAULT_FROM_ENCODING)
+    public function setupForSjisOut(string $from_encoding = self::DEFAULT_FROM_ENCODING): StreamFilterConvertEncodingSpecEntity
     {
         return $this->to(static::ENCODING_NAME_SJIS_WIN)->from($from_encoding);
     }
@@ -339,10 +342,10 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
     /**
      * EUC-JP出力用の設定を行います。
      *
-     * @param   string  $from_encoding  変換前文字列エンコーディング
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    このインスタンス
+     * @param  string                                $from_encoding 変換前文字列エンコーディング
+     * @return StreamFilterConvertEncodingSpecEntity このインスタンス
      */
-    public function setupForEucjpOut($from_encoding = self::DEFAULT_FROM_ENCODING)
+    public function setupForEucjpOut(string $from_encoding = self::DEFAULT_FROM_ENCODING): StreamFilterConvertEncodingSpecEntity
     {
         return $this->to(static::ENCODING_NAME_EUCJP_WIN)->from($from_encoding);
     }
@@ -350,10 +353,10 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
     /**
      * UTF-8出力用の設定を行います。
      *
-     * @param   string  $from_encoding  変換前文字列エンコーディング
-     * @return  \fw3\streams\filters\utilitys\specs\entitys\StreamFilterConvertEncodingSpecEntity    このインスタンス
+     * @param  string                                $from_encoding 変換前文字列エンコーディング
+     * @return StreamFilterConvertEncodingSpecEntity このインスタンス
      */
-    public function setupForUtf8Out($from_encoding = self::DEFAULT_FROM_ENCODING)
+    public function setupForUtf8Out(string $from_encoding = self::DEFAULT_FROM_ENCODING): StreamFilterConvertEncodingSpecEntity
     {
         return $this->to(static::ENCODING_NAME_UTF8)->from($from_encoding);
     }

@@ -1,0 +1,85 @@
+name: PHP CI
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'develop'
+      - 'f/**'
+      - 'p/**'
+
+jobs:
+  run-php-cs-fixer:
+    name: PHP Code Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: cache
+        uses: actions/cache@v3
+        with:
+          path: .php-cs-fixer/.ci_cache
+          key: ${{ runner.OS }}-${{ github.repository }}-phpcsfixer-${{ github.sha }}
+          restore-keys: |
+
+      - name: Diff check
+        uses: technote-space/get-diff-action@v6
+        with:
+          PATTERNS: |
+            **/*.php
+
+      - name: Auto format
+        uses: docker://oskarstark/php-cs-fixer-ga
+        with:
+          args: --config=.php-cs-fixer.dist.php
+        if: env.GIT_DIFF
+
+      - name: Auto commit
+        uses: stefanzweifel/git-auto-commit-action@v4.2.0
+        with:
+          commit_message: php-cs-fixer by Github Actions
+        if: env.GIT_DIFF
+
+      - name: Run if changes have been detected
+        if:  ${{ env.GIT_DIFF && steps.auto-commit-action.outputs.changes_detected == 'true' }}
+        run: echo "Changes!"
+
+      - name: Run if no changes have been detected
+        if:  ${{ !env.GIT_DIFF || steps.auto-commit-action.outputs.changes_detected == 'false' }}
+        run: echo "No Changes!"
+
+  run-php-unit:
+    runs-on: ${{ matrix.os }}
+    strategy:
+     fail-fast: false
+     matrix:
+      os: [ubuntu-latest, windows-latest]
+
+    steps:
+    - name: ja_JP.UTF-8
+      run: |
+          sudo apt install locales-all language-pack-ja
+          sudo locale-gen
+          sudo locale-gen ja_JP.EUC-JP
+          sudo update-locale LANG=ja_JP.UTF-8
+      if: runner.os == 'Linux'
+    - uses: actions/checkout@v3
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Run test suite
+      run: ./vendor/bin/phpunit tests
