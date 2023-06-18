@@ -22,6 +22,17 @@ declare(strict_types=1);
 namespace Tests\streams\filters\utilitys;
 
 use fw3\streams\filters\ConvertEncodingFilter;
+use fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity;
+use fw3\streams\filters\utilitys\specs\entitys\resources\FileResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpFdResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpInputResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpMemoryResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpOutputResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpStdinResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpStdoutResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpTempResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\RawResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\ZipResourceSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
 use fw3\streams\filters\utilitys\StreamFilterSpec;
@@ -344,5 +355,52 @@ class StreamFilterSpecTest extends TestCase
 
             $this->assertEquals($system_locale, ConvertEncodingFilter::currentLocale());
         }
+    }
+
+    /**
+     * リソースアクセサのテスト
+     *
+     * @test
+     */
+    public function resourceAccessor(): void
+    {
+        $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resource(__FILE__));
+        $this->assertInstanceOf(FileResourceSpec::class, $streamFilterSpecEntity->resource());
+
+        $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resource('zip://hoge.zip#huga.csv'));
+        $this->assertInstanceOf(RawResourceSpec::class, $streamFilterSpecEntity->resource());
+
+        $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resource(FileResourceSpec::factory(__FILE__)));
+        $this->assertInstanceOf(FileResourceSpec::class, $streamFilterSpecEntity->resource());
+
+        $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resourceFile(__FILE__));
+        $this->assertInstanceOf(FileResourceSpec::class, $streamFilterSpecEntity->resource());
+
+        $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resourceStdin());
+        $this->assertInstanceOf(PhpStdinResourceSpec::class, $streamFilterSpecEntity->resource());
+
+        $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resourceStdout());
+        $this->assertInstanceOf(PhpStdoutResourceSpec::class, $streamFilterSpecEntity->resource());
+
+        $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resourceInput());
+        $this->assertInstanceOf(PhpInputResourceSpec::class, $streamFilterSpecEntity->resource());
+
+        $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resourceOutput());
+        $this->assertInstanceOf(PhpOutputResourceSpec::class, $streamFilterSpecEntity->resource());
+
+        $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resourceFd());
+        $this->assertInstanceOf(PhpFdResourceSpec::class, $streamFilterSpecEntity->resource());
+
+        $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resourceMemory());
+        $this->assertInstanceOf(PhpMemoryResourceSpec::class, $streamFilterSpecEntity->resource());
+
+        $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resourceTemp());
+        $this->assertInstanceOf(PhpTempResourceSpec::class, $streamFilterSpecEntity->resource());
+
+        $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resourceRaw('zip://hoge.zip#huga.csv'));
+        $this->assertInstanceOf(RawResourceSpec::class, $streamFilterSpecEntity->resource());
+
+        $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resourceZip(__FILE__, 'hoge.txt'));
+        $this->assertInstanceOf(ZipResourceSpec::class, $streamFilterSpecEntity->resource());
     }
 }

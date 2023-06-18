@@ -26,6 +26,7 @@ Rapid Development FrameworkであるFlywheel3 のストリーム処理ライブ�
 組み込みのロカール変更処理と代替文字設定処理を利用する事で確実かつ、期待通りの出力を得る事ができるようになります。
 
 また同梱のSpecクラス群を用いることで直感的かつ簡単、安全に設定を行うことができます。
+更にZIP拡張適用環境の場合、透過的にZIPファイル内のCSVファイルも取り扱う事ができます。
 
 ```php
 <?php
@@ -356,6 +357,47 @@ $result = StreamFilterSpec::decorateForCsv(function () use ($path_to_csv, $rows)
     //==============================================
     // フィルタの設定
     $spec   = StreamFilterSpec::resource($path_to_csv)->read([
+        StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin(),
+    ]);
+
+    // UTF-8としてCSV読み込みを行う（\SplFileObjectでも使用できます。）
+    $rows       = [];
+    $csvFile    = new \SplFileObject($spec->build(), 'r+b');
+    $csvFile->setFlags(\SplFileObject::READ_CSV);
+    foreach ($csvFile as $row) {
+        $rows[] = $row;
+    }
+
+    return $rows;
+});
+```
+
+##### ZIPファイル内のCSVファイルを透過的に扱う例
+
+```php
+<?php
+
+use fw3\streams\filters\utilitys\StreamFilterSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
+
+//==============================================
+// 設定
+//==============================================
+$path_to_csv    = '';   // CSVファイルを含むZIPファイルのパスを設定して下さい
+
+//----------------------------------------------
+// 一括即時実行
+//----------------------------------------------
+// フィルタ登録、ロカールと代替文字の設定と実行後のリストアも包括して実行します。
+// コールバックの実行中に例外が発生してもロカールと代替文字のリストアは実行されます。
+//----------------------------------------------
+$result = StreamFilterSpec::decorateForCsv(function () use ($path_to_csv) {
+    //==============================================
+    // 読み込み
+    //==============================================
+    // フィルタの設定：`$path_to_csv`が示すZIPファイル内の`temp/test.csv`にアクセスする例
+    $spec   = StreamFilterSpec::resourceZip($path_to_csv, 'temp/test.csv')->read([
         StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin(),
     ]);
 

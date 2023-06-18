@@ -25,7 +25,7 @@ return (new PhpCsFixer\Config())
 ->setUsingCache(false)
 ->setRules([
     '@PSR12'                                            => true,
-    '@PHP82Migration'                                   => true,
+    //    '@PHP82Migration'                                   => true,  // @MEMO 現行での最低要件がPHP7.2のため
     'align_multiline_comment'                           => ['comment_type'  => 'phpdocs_only'],
     'array_indentation'                                 => true,
     'array_push'                                        => true,
