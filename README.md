@@ -313,7 +313,7 @@ $result = StreamFilterSpec::decorateForCsv(function () use ($path_to_csv, $rows)
 ```
 
 
-##### 無難なCSV入出力：`\SqlFileObject`を利用した例
+##### 無難なCSV入出力：`\SplFileObject`を利用した例
 
 ```php
 <?php
@@ -346,7 +346,7 @@ $result = StreamFilterSpec::decorateForCsv(function () use ($path_to_csv, $rows)
     ]);
 
     // CP932、行末の改行コードCRLFとしてCSV書き込みを行う
-    $csvFile    = new \SqlFileObject($spec->build(), 'r+b');
+    $csvFile    = new \SplFileObject($spec->build(), 'r+b');
     foreach ($csvFile as $row) {
         $file->fputcsv($row);
     }
@@ -361,8 +361,8 @@ $result = StreamFilterSpec::decorateForCsv(function () use ($path_to_csv, $rows)
 
     // UTF-8としてCSV読み込みを行う（\SplFileObjectでも使用できます。）
     $rows       = [];
-    $csvFile    = new \SqlFileObject($spec->build(), 'r+b');
-    $csvFile->setFlags(\SqlFileObject::READ_CSV);
+    $csvFile    = new \SplFileObject($spec->build(), 'r+b');
+    $csvFile->setFlags(\SplFileObject::READ_CSV);
     foreach ($csvFile as $row) {
         $rows[] = $row;
     }

@@ -115,6 +115,11 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
      */
     protected string $fromEncoding = self::DEFAULT_FROM_ENCODING;
 
+    /**
+     * @var null|string エンコーディング検出に失敗した場合の代替変換元エンコーディング
+     */
+    protected ?string $substituteFromEncoding    = null;
+
     // ==============================================
     // static method
     // ==============================================
@@ -311,10 +316,13 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
     /**
      * 変換前の文字エンコーディングをautoとして設定したスペックエンティティを返します。
      *
+     * @param  null|string                           $substitute_from_encoding エンコーディング検出に失敗した場合の代替変換元エンコーディング
      * @return StreamFilterConvertEncodingSpecEntity 変換前の文字エンコーディングをautoとして設定したスペックエンティティ
      */
-    public function fromAuto(): StreamFilterConvertEncodingSpecEntity
+    public function fromAuto(?string $substitute_from_encoding = null): StreamFilterConvertEncodingSpecEntity
     {
+        $this->substituteFromEncoding   = $substitute_from_encoding;
+
         return $this->from(static::FROM_ENCODING_AUTO);
     }
 
@@ -325,7 +333,14 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
      */
     public function build(): string
     {
-        return \sprintf('%s.%s%s%s', StreamFilterConvertEncodingSpec::filterName(), $this->toEncoding, static::PARAMETER_OPTION_SEPARATOR, $this->fromEncoding);
+        return \sprintf(
+            '%s.%s%s%s%s',
+            StreamFilterConvertEncodingSpec::filterName(),
+            $this->toEncoding,
+            static::PARAMETER_OPTION_SEPARATOR,
+            $this->fromEncoding,
+            $this->substituteFromEncoding === null ? '' : \sprintf('%s%s', static::PARAMETER_OPTION_SEPARATOR, $this->substituteFromEncoding),
+        );
     }
 
     /**

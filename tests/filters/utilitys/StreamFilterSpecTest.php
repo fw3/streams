@@ -51,15 +51,37 @@ class StreamFilterSpecTest extends TestCase
         $this->assertNotSame($streamFilterSpec->with(), $streamFilterSpec);
 
         if (\version_compare(\PHP_VERSION, '8.1')) {
-            $this->assertSame($streamFilterSpec->with()->appendWriteChain($streamFilterConvertEncodingSpec->with()->setupForSjisOut())->build(), 'php://filter/write=convert.encoding.CP932:default');
+            $this->assertSame('php://filter/write=convert.encoding.CP932:default', $streamFilterSpec->with()->appendWriteChain($streamFilterConvertEncodingSpec->with()->setupForSjisOut())->build());
         } else {
-            $this->assertSame($streamFilterSpec->with()->appendWriteChain($streamFilterConvertEncodingSpec->with()->setupForSjisOut())->build(), 'php://filter/write=convert.encoding.SJIS-win:default');
+            $this->assertSame('php://filter/write=convert.encoding.SJIS-win:default', $streamFilterSpec->with()->appendWriteChain($streamFilterConvertEncodingSpec->with()->setupForSjisOut())->build());
         }
-        $this->assertSame($streamFilterSpec->with()->appendWriteChain($streamFilterConvertEncodingSpec->with()->setupForEucjpOut())->build(), 'php://filter/write=convert.encoding.eucJP-win:default');
-        $this->assertSame($streamFilterSpec->with()->appendWriteChain($streamFilterConvertEncodingSpec->with()->setupForUtf8Out())->build(), 'php://filter/write=convert.encoding.UTF-8:default');
+        $this->assertSame('php://filter/write=convert.encoding.eucJP-win:default', $streamFilterSpec->with()->appendWriteChain($streamFilterConvertEncodingSpec->with()->setupForEucjpOut())->build());
+        $this->assertSame('php://filter/write=convert.encoding.UTF-8:default', $streamFilterSpec->with()->appendWriteChain($streamFilterConvertEncodingSpec->with()->setupForUtf8Out())->build());
 
-        $this->assertSame($streamFilterSpec->with()->appendWriteChain($streamFilterConvertLinefeedSpec->with()->setupForUnix())->build(), 'php://filter/write=convert.linefeed.LF:ALL');
-        $this->assertSame($streamFilterSpec->with()->appendWriteChain($streamFilterConvertLinefeedSpec->with()->setupForWindows())->build(), 'php://filter/write=convert.linefeed.CRLF:ALL');
+        $this->assertSame('php://filter/write=convert.linefeed.LF:ALL', $streamFilterSpec->with()->appendWriteChain($streamFilterConvertLinefeedSpec->with()->setupForUnix())->build());
+        $this->assertSame('php://filter/write=convert.linefeed.CRLF:ALL', $streamFilterSpec->with()->appendWriteChain($streamFilterConvertLinefeedSpec->with()->setupForWindows())->build());
+
+        $this->assertSame('convert.encoding.CP932:auto', StreamFilterConvertEncodingSpec::toSjisWin()->fromAuto()->build());
+        $this->assertSame('convert.encoding.CP932:auto:UTF-8', StreamFilterConvertEncodingSpec::toSjisWin()->fromAuto('UTF-8')->build());
+
+        $this->assertSame('convert.encoding.CP932:auto', StreamFilterConvertEncodingSpec::fromAuto()->toSjisWin()->build());
+        $this->assertSame('convert.encoding.CP932:auto:UTF-8', StreamFilterConvertEncodingSpec::fromAuto('UTF-8')->toSjisWin()->build());
+
+        $this->assertSame('php://filter/write=convert.encoding.CP932:auto/resource=php://memory', StreamFilterSpec::resourceMemory()->write([
+            StreamFilterConvertEncodingSpec::toSjisWin()->fromAuto(),
+        ])->build());
+
+        $this->assertSame('php://filter/write=convert.encoding.CP932:auto:UTF-8/resource=php://memory', StreamFilterSpec::resourceMemory()->write([
+            StreamFilterConvertEncodingSpec::toSjisWin()->fromAuto('UTF-8'),
+        ])->build());
+
+        $this->assertSame('php://filter/read=convert.encoding.CP932:auto/resource=php://memory', StreamFilterSpec::resourceMemory()->read([
+            StreamFilterConvertEncodingSpec::toSjisWin()->fromAuto(),
+        ])->build());
+
+        $this->assertSame('php://filter/read=convert.encoding.CP932:auto:UTF-8/resource=php://memory', StreamFilterSpec::resourceMemory()->read([
+            StreamFilterConvertEncodingSpec::toSjisWin()->fromAuto('UTF-8'),
+        ])->build());
     }
 
     /**

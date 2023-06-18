@@ -181,6 +181,24 @@ class ConvertEncodingFilterTest extends TestCase
         } catch (\Exception $e) {
             $this->assertSame('変換元のエンコーディング名が無効です。from_encoding:aaa', $e->getMessage());
         }
+
+        try {
+            $stream_wrapper = 'php://filter/write=convert.encoding.CP932:UTF-8:aaa/resource=php://temp';
+            $this->assertWriteStreamFilterSame('あ', 'あ', $stream_wrapper);
+
+            throw new \Exception();
+        } catch (\Exception $e) {
+            $this->assertSame('エンコーディング検出に失敗した場合の代替変換元エンコーディング名が無効です。substitute_from_encoding:aaa', $e->getMessage());
+        }
+
+        try {
+            $stream_wrapper = 'php://filter/write=convert.encoding.CP932:UTF-8:CP932/resource=php://temp';
+            $this->assertWriteStreamFilterSame('あ', 'あ', $stream_wrapper);
+
+            throw new \Exception();
+        } catch (\Exception $e) {
+            $this->assertSame('エンコーディング検出に失敗した場合の代替時の変換前後のエンコーディング名が同じです。to_encoding:CP932, substitute_from_encoding:CP932', $e->getMessage());
+        }
     }
 
     /**
@@ -190,13 +208,14 @@ class ConvertEncodingFilterTest extends TestCase
      */
     public function locale(): void
     {
+        $exception_message = null;
+
         try {
             ConvertEncodingFilter::startChangeLocale('asdfqwer');
-
-            throw new \Exception();
         } catch (\Exception $e) {
-            $this->assertSame('システムで使用できないロカールを指定されました。locale:asdfqwer', $e->getMessage());
+            $exception_message  = $e->getMessage();
         }
+        $this->assertSame('システムで使用できないロカールを指定されました。locale:asdfqwer', $exception_message);
 
         $this->assertSame([$this->systemLocale], ConvertEncodingFilter::getLocaleStack());
         $this->assertSame(ConvertEncodingFilter::getSafeLocale(), ConvertEncodingFilter::currentLocale());
@@ -387,6 +406,33 @@ class ConvertEncodingFilterTest extends TestCase
     {
         $mb_list_encodings  = \mb_list_encodings();
         $this->assertSame(\array_combine($mb_list_encodings, $mb_list_encodings), ConvertEncodingFilter::getDefaultDetectEncodingListCache());
+    }
+
+    /**
+     * エンコーディング検出に失敗した場合の代替変換元エンコーディングテスト
+     *
+     * @test
+     */
+    public function substituteFromEncoding(): void
+    {
+        $this->assertSame(null, ConvertEncodingFilter::defaultSubstituteFromEncoding());
+        $this->assertSame(null, ConvertEncodingFilter::defaultSubstituteFromEncoding('CP932'));
+        $this->assertSame('CP932', ConvertEncodingFilter::defaultSubstituteFromEncoding());
+        $this->assertSame('CP932', ConvertEncodingFilter::defaultSubstituteFromEncoding(null));
+        $this->assertSame(null, ConvertEncodingFilter::defaultSubstituteFromEncoding());
+
+        try {
+            $stream_wrapper = 'php://filter/write=convert.encoding.CP932:auto/resource=php://temp';
+            $this->assertWriteStreamFilterSame(\substr('あ', 0, 2), \substr('あ', 0, 2), $stream_wrapper);
+
+            throw new \Exception();
+        } catch (\Exception $e) {
+            $this->assertSame('文字エンコーディング検出に失敗しました。対象:e381', $e->getMessage());
+        }
+
+        $stream_wrapper = 'php://filter/read=convert.encoding.CP932:auto:UTF-8/resource=php://temp';
+
+        $this->assertWriteStreamFilterSame(\mb_convert_encoding('あ' . \substr('あ', 0, 2), 'CP932', 'UTF-8'), 'あ' . \substr('あ', 0, 2), $stream_wrapper);
     }
 
     /**

@@ -287,11 +287,12 @@ abstract class StreamFilterConvertEncodingSpec
     /**
      * 変換前の文字エンコーディングをautoとして設定したスペックエンティティを返します。
      *
+     * @param  null|string                           $substitute_from_encoding エンコーディング検出に失敗した場合の代替変換元エンコーディング
      * @return StreamFilterConvertEncodingSpecEntity 変換前の文字エンコーディングをautoとして設定したスペックエンティティ
      */
-    public static function fromAuto(): StreamFilterConvertEncodingSpecEntity
+    public static function fromAuto(?string $substitute_from_encoding = null): StreamFilterConvertEncodingSpecEntity
     {
-        return static::factory()->fromAuto();
+        return static::factory()->fromAuto($substitute_from_encoding);
     }
 
     /**
