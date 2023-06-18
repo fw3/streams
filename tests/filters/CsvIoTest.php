@@ -23,6 +23,7 @@ namespace Tests\streams\filters;
 
 use fw3\streams\filters\ConvertEncodingFilter;
 use fw3\streams\filters\ConvertLinefeedFilter;
+use fw3\streams\filters\utilitys\specs\entitys\resources\ZipResourceSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
 use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
 use fw3\streams\filters\utilitys\StreamFilterSpec;
@@ -36,6 +37,11 @@ use PHPUnit\Framework\TestCase;
 class CsvIoTest extends TestCase
 {
     use StreamFilterTestTrait;
+
+    /**
+     * @var string tests\resources\encrypted_test.zip用パスワード
+     */
+    protected const TEST_ENCRYPTED_TEST_PASSWORD = 'd/>967{6IpQ!55S4';
 
     /**
      * @var string テストデータ：ダメ文字開始
@@ -115,6 +121,65 @@ class CsvIoTest extends TestCase
         $stream_chunk_size  = 1024;
 
         $this->assertCsvInputStreamFilterSame($expected, $csv_text, $stream_chunk_size, $read_parameters);
+    }
+
+    /**
+     * ZIPアーカイブサポート
+     *
+     * @test
+     */
+    public function zipSupport(): void
+    {
+        if (isset($_SERVER['GITHUB_ACTIONS']) && $_SERVER['GITHUB_ACTIONS'] && \PHP_OS_FAMILY === 'Windows') {
+            $this->assertSame($mirror = '2023/06時点でGithub Actions上のWindowsでZIP拡張を有効にする方法が不明な為、一時的にスキップ。', $mirror);
+        } else {
+            $expected   = [
+                ['同ソ', '島', 'に出展している', 'ickx'],
+                ['を', 'よろしくね'],
+            ];
+
+            $test_root_dir      = \dirname(__DIR__);
+            $test_resources_dir = \sprintf('%s/resources', $test_root_dir);
+
+            // ==============================================
+            $csv_zip_path           = \sprintf('%s/test.zip', $test_resources_dir);
+
+            $spec   = StreamFilterSpec::resourceZip($csv_zip_path, 'dir/sjis.csv')->read([
+                StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin(),
+            ]);
+
+            $rows       = [];
+            $csvFile    = new \SplFileObject($spec->build(), 'r+b');
+            $csvFile->setFlags(\SplFileObject::READ_CSV);
+
+            for ($row = $csvFile->fgetcsv();$row !== false;$row = $csvFile->fgetcsv()) {
+                $rows[] = $row;
+            }
+
+            $this->assertSame($expected, $rows);
+
+            // 2023/06時点で暗号化ZIPは取り扱えない可能性が高い
+            // // ==============================================
+            // $encrypted_csv_zip_path = \sprintf('%s/encrypted_test.zip', $test_resources_dir);
+
+            // $spec   = StreamFilterSpec::resourceZip($encrypted_csv_zip_path, 'dir/sjis.csv')->read([
+            //     StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin(),
+            // ]);
+
+            // /** @var ZipResourceSpec $resource */
+            // $resource   = $spec->resource();
+            // $resource->setPassword(self::TEST_ENCRYPTED_TEST_PASSWORD);
+
+            // $rows       = [];
+            // $csvFile    = new \SplFileObject($spec->build(), 'r+b', false, $resource->createStreamContext());
+            // $csvFile->setFlags(\SplFileObject::READ_CSV);
+
+            // for ($row = $csvFile->fgetcsv();$row !== false;$row = $csvFile->fgetcsv()) {
+            //     $rows[] = $row;
+            // }
+
+            // $this->assertSame($expected, $rows);
+        }
     }
 
     /**

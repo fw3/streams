@@ -151,12 +151,35 @@ abstract class StreamFilterSpec
     /**
      * フィルタの対象となるストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @param  string|\SplFileInfo|\SplFileObject $resource フィルタの対象となるストリーム
-     * @return StreamFilterSpecEntity             フィルタの対象となるストリームを設定したストリームフィルタスペックエンティティ
+     * @param  null|string|\SplFileInfo|ResourceSpecInterface $resource フィルタの対象となるリソースタイプ
+     * @return StreamFilterSpecEntity                         フィルタの対象となるストリームを設定したストリームフィルタスペックエンティティ
      */
     public static function resource($resource): StreamFilterSpecEntity
     {
         return static::factory()->resource($resource);
+    }
+
+    /**
+     * フィルタの対象となるファイルを設定したストリームフィルタスペックエンティティを返します。
+     *
+     * @param  string|\SplFileInfo    $file ファイル
+     * @return StreamFilterSpecEntity フィルタの対象となるファイルを設定したストリームフィルタスペックエンティティ
+     */
+    public static function resourceFile($file): StreamFilterSpecEntity
+    {
+        return static::factory()->resourceFile($file);
+    }
+
+    /**
+     * フィルタの対象となるzip://stdinストリームを設定したストリームフィルタスペックエンティティを返します。
+     *
+     * @param  string|\SplFileInfo    $zip_file        ZIPファイル
+     * @param  string                 $path_in_archive ZIPファイル内ファイルパス
+     * @return StreamFilterSpecEntity フィルタの対象となるzip://ストリームを設定したストリームフィルタスペックエンティティ
+     */
+    public static function resourceZip($zip_file, string $path_in_archive): StreamFilterSpecEntity
+    {
+        return static::factory()->resourceZip($zip_file, $path_in_archive);
     }
 
     /**
@@ -227,6 +250,16 @@ abstract class StreamFilterSpec
     public static function resourceTemp(): StreamFilterSpecEntity
     {
         return static::factory()->resourceTemp();
+    }
+
+    /**
+     * フィルタの対象となるストリーム文字列を設定したストリームフィルタスペックエンティティを返します。
+     *
+     * @return StreamFilterSpecEntity フィルタの対象となるストリーム文字列を設定したストリームフィルタスペックエンティティ
+     */
+    public static function resourceRaw($resource): StreamFilterSpecEntity
+    {
+        return static::factory()->resourceRaw($resource);
     }
 
     /**

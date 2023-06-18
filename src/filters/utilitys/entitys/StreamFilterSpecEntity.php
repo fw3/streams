@@ -21,6 +21,18 @@ declare(strict_types=1);
 
 namespace fw3\streams\filters\utilitys\entitys;
 
+use fw3\streams\filters\utilitys\specs\entitys\resources\FileResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpFdResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpInputResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpMemoryResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpOutputResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpStderrResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpStdinResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpStdoutResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpTempResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\RawResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\traits\ResourceSpecInterface;
+use fw3\streams\filters\utilitys\specs\entitys\resources\ZipResourceSpec;
 use fw3\streams\filters\utilitys\specs\interfaces\StreamFilterSpecInterface;
 use fw3\streams\filters\utilitys\StreamFilterSpec;
 
@@ -53,44 +65,76 @@ class StreamFilterSpecEntity
     // resource
     // ----------------------------------------------
     /**
+     * @var string リソース名：file
+     */
+    public const RESOURCE_FILE          = FileResourceSpec::RESOURCE_TYPE;
+
+    /**
      * @var string リソース名：stdin
      */
-    public const RESOURCE_PHP_STDIN     = 'php://stdin';
+    public const RESOURCE_PHP_STDIN     = PhpStdinResourceSpec::RESOURCE_TYPE;
 
     /**
-     * @var string リソース名：strout
+     * @var string リソース名：stdout
      */
-    public const RESOURCE_PHP_STDOUT    = 'php://stdout';
+    public const RESOURCE_PHP_STDOUT    = PhpStdoutResourceSpec::RESOURCE_TYPE;
 
     /**
-     * @var string リソース名：strerr
+     * @var string リソース名：stderr
      */
-    public const RESOURCE_PHP_STDERR    = 'php://stderr';
+    public const RESOURCE_PHP_STDERR    = PhpStderrResourceSpec::RESOURCE_TYPE;
 
     /**
      * @var string リソース名：input
      */
-    public const RESOURCE_PHP_INPUT     = 'php://input';
+    public const RESOURCE_PHP_INPUT     = PhpInputResourceSpec::RESOURCE_TYPE;
 
     /**
      * @var string リソース名：output
      */
-    public const RESOURCE_PHP_OUTPUT    = 'php://output';
+    public const RESOURCE_PHP_OUTPUT    = PhpOutputResourceSpec::RESOURCE_TYPE;
 
     /**
      * @var string リソース名：fd
      */
-    public const RESOURCE_PHP_FD        = 'php://fd';
+    public const RESOURCE_PHP_FD        = PhpFdResourceSpec::RESOURCE_TYPE;
 
     /**
      * @var string リソース名：memory
      */
-    public const RESOURCE_PHP_MEMORY    = 'php://memory';
+    public const RESOURCE_PHP_MEMORY    = PhpMemoryResourceSpec::RESOURCE_TYPE;
 
     /**
      * @var string リソース名：temp
      */
-    public const RESOURCE_PHP_TEMP      = 'php://temp';
+    public const RESOURCE_PHP_TEMP      = PhpTempResourceSpec::RESOURCE_TYPE;
+
+    /**
+     * @var string リソース名：生文字列
+     */
+    public const RESOURCE_RAW           = RawResourceSpec::RESOURCE_TYPE;
+
+    /**
+     * @var string リソース名：zip
+     */
+    public const RESOURCE_ZIP           = ZipResourceSpec::RESOURCE_TYPE;
+
+    /**
+     * @var リソーススペッククラスリスト
+     */
+    public const RESOURCE_SPEC_CLASS_LIST   = [
+        self::RESOURCE_FILE         => FileResourceSpec::class,
+        self::RESOURCE_PHP_STDIN    => PhpStdinResourceSpec::class,
+        self::RESOURCE_PHP_STDOUT   => PhpStdoutResourceSpec::class,
+        self::RESOURCE_PHP_STDERR   => PhpStderrResourceSpec::class,
+        self::RESOURCE_PHP_INPUT    => PhpInputResourceSpec::class,
+        self::RESOURCE_PHP_OUTPUT   => PhpOutputResourceSpec::class,
+        self::RESOURCE_PHP_FD       => PhpFdResourceSpec::class,
+        self::RESOURCE_PHP_MEMORY   => PhpMemoryResourceSpec::class,
+        self::RESOURCE_PHP_TEMP     => PhpTempResourceSpec::class,
+        self::RESOURCE_RAW          => RawResourceSpec::class,
+        self::RESOURCE_ZIP          => ZipResourceSpec::class,
+    ];
 
     // ==============================================
     // property
@@ -98,9 +142,9 @@ class StreamFilterSpecEntity
     // フィルタパラメータ
     // ----------------------------------------------
     /**
-     * @var string|\SplFileInfo|\SplFileObject フィルタの対象となるストリーム
+     * @var null|ResourceSpecInterface フィルタの対象となるリソース
      */
-    protected $resource;
+    protected ?ResourceSpecInterface $resource = null;
 
     /**
      * @var array 書き込みチェーンに適用するフィルタのリスト
@@ -138,7 +182,11 @@ class StreamFilterSpecEntity
 
         if (!empty($spec)) {
             if (isset($spec['resource']) || \array_key_exists('resource', $spec)) {
-                $instance->resource($spec['resource']);
+                if (\is_array($spec['resource'])) {
+                    \call_user_func_array([$instance, 'resource'], $spec['resource']);
+                } else {
+                    $instance->resource($spec['resource']);
+                }
             }
 
             if (isset($spec['write']) || \array_key_exists('write', $spec)) {
@@ -178,89 +226,147 @@ class StreamFilterSpecEntity
     }
 
     /**
-     * フィルタの対象となるストリームを取得・設定します。
+     * フィルタの対象となるリソースを取得・設定します。
      *
-     * @param  null|string|\SplFileInfo|\SplFileObject             $resource フィルタの対象となるストリーム
-     * @return string|\SplFileInfo|\SplFileObject|StreamFilterSpec フィルタの対象となるストリームまたはこのインスタンス
+     * @param  null|string|\SplFileInfo|ResourceSpecInterface $resource フィルタの対象となるリソースタイプ
+     * @param  mixed                                          ...$value オプション引数
+     * @return static|StreamFilterSpec                        フィルタの対象となるリソースまたはこのインスタンス
      */
-    public function resource($resource = null)
+    public function resource($resource = null, ...$value)
     {
-        if (\func_num_args() === 0) {
-            return $resource;
+        if ($resource === null && \func_num_args() === 0) {
+            return $this->resource;
         }
-        $this->resource = $resource;
+
+        if ($resource instanceof ResourceSpecInterface) {
+            $this->resource = $resource;
+
+            return $this;
+        }
+
+        if (isset(static::RESOURCE_SPEC_CLASS_LIST[$resource])) {
+            $this->resource = static::RESOURCE_SPEC_CLASS_LIST[$resource]::factory(...$value);
+
+            return $this;
+        }
+
+        if (!(
+            \str_starts_with($resource, 'http://')
+            || \str_starts_with($resource, 'https://')
+            || \str_starts_with($resource, 'ftp://')
+            || \str_starts_with($resource, 'ftps://')
+        ) && \str_contains($resource, '://')) {
+            $this->resource = RawResourceSpec::factory($resource);
+
+            return $this;
+        }
+
+        $this->resource = FileResourceSpec::factory($resource);
 
         return $this;
     }
 
     /**
+     * フィルタの対象となるファイルを設定したストリームフィルタスペックエンティティを返します。
+     *
+     * @param  string|\SplFileInfo    $file ファイル
+     * @return StreamFilterSpecEntity フィルタの対象となるファイルを設定したストリームフィルタスペックエンティティ
+     */
+    public function resourceFile($file): StreamFilterSpecEntity
+    {
+        return $this->resource(FileResourceSpec::factory($file));
+    }
+
+    /**
+     * フィルタの対象となるzip://stdinストリームを設定したストリームフィルタスペックエンティティを返します。
+     *
+     * @param  string|\SplFileInfo    $zip_file        ZIPファイル
+     * @param  string                 $path_in_archive ZIPファイル内ファイルパス
+     * @return StreamFilterSpecEntity フィルタの対象となるzip://ストリームを設定したストリームフィルタスペックエンティティ
+     */
+    public function resourceZip($zip_file, string $path_in_archive): StreamFilterSpecEntity
+    {
+        return $this->resource(ZipResourceSpec::factory($zip_file, $path_in_archive));
+    }
+
+    /**
      * フィルタの対象となるphp://stdinストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://stdinストリームを設定したストリームフィルタスペックエンティティ
+     * @return StreamFilterSpecEntity フィルタの対象となるphp://stdinストリームを設定したストリームフィルタスペックエンティティ
      */
     public function resourceStdin(): StreamFilterSpecEntity
     {
-        return $this->resource(static::RESOURCE_PHP_STDIN);
+        return $this->resource(PhpStdinResourceSpec::factory());
     }
 
     /**
      * フィルタの対象となるphp://stdoutストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://stdoutストリームを設定したストリームフィルタスペックエンティティ
+     * @return StreamFilterSpecEntity フィルタの対象となるphp://stdoutストリームを設定したストリームフィルタスペックエンティティ
      */
     public function resourceStdout(): StreamFilterSpecEntity
     {
-        return $this->resource(static::RESOURCE_PHP_STDOUT);
+        return $this->resource(PhpStdoutResourceSpec::factory());
     }
 
     /**
      * フィルタの対象となるphp://inputストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://inputストリームを設定したストリームフィルタスペックエンティティ
+     * @return StreamFilterSpecEntity フィルタの対象となるphp://inputストリームを設定したストリームフィルタスペックエンティティ
      */
     public function resourceInput(): StreamFilterSpecEntity
     {
-        return $this->resource(static::RESOURCE_PHP_INPUT);
+        return $this->resource(PhpInputResourceSpec::factory());
     }
 
     /**
      * フィルタの対象となるphp://outputストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://outputストリームを設定したストリームフィルタスペックエンティティ
+     * @return StreamFilterSpecEntity フィルタの対象となるphp://outputストリームを設定したストリームフィルタスペックエンティティ
      */
     public function resourceOutput(): StreamFilterSpecEntity
     {
-        return $this->resource(static::RESOURCE_PHP_OUTPUT);
+        return $this->resource(PhpOutputResourceSpec::factory());
     }
 
     /**
      * フィルタの対象となるphp://fdストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://fdストリームを設定したストリームフィルタスペックエンティティ
+     * @return StreamFilterSpecEntity フィルタの対象となるphp://fdストリームを設定したストリームフィルタスペックエンティティ
      */
     public function resourceFd(): StreamFilterSpecEntity
     {
-        return $this->resource(static::RESOURCE_PHP_FD);
+        return $this->resource(PhpFdResourceSpec::factory());
     }
 
     /**
      * フィルタの対象となるphp://memoryストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://memoryストリームを設定したストリームフィルタスペックエンティティ
+     * @return StreamFilterSpecEntity フィルタの対象となるphp://memoryストリームを設定したストリームフィルタスペックエンティティ
      */
     public function resourceMemory(): StreamFilterSpecEntity
     {
-        return $this->resource(static::RESOURCE_PHP_MEMORY);
+        return $this->resource(PhpMemoryResourceSpec::factory());
     }
 
     /**
      * フィルタの対象となるphp://tempストリームを設定したストリームフィルタスペックエンティティを返します。
      *
-     * @return \fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity フィルタの対象となるphp://tempストリームを設定したストリームフィルタスペックエンティティ
+     * @return StreamFilterSpecEntity フィルタの対象となるphp://tempストリームを設定したストリームフィルタスペックエンティティ
      */
     public function resourceTemp(): StreamFilterSpecEntity
     {
-        return $this->resource(static::RESOURCE_PHP_TEMP);
+        return $this->resource(PhpTempResourceSpec::factory());
+    }
+
+    /**
+     * フィルタの対象となるストリーム文字列を設定したストリームフィルタスペックエンティティを返します。
+     *
+     * @return StreamFilterSpecEntity フィルタの対象となるストリーム文字列を設定したストリームフィルタスペックエンティティ
+     */
+    public function resourceRaw($resource): StreamFilterSpecEntity
+    {
+        return $this->resource(RawResourceSpec::factory($resource));
     }
 
     /**
@@ -496,7 +602,7 @@ class StreamFilterSpecEntity
             return '';
         }
 
-        return \sprintf('resource=%s', (string) $this->resource);
+        return \sprintf('resource=%s', $this->resource->build());
     }
 
     /**
