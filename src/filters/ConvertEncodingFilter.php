@@ -213,6 +213,11 @@ class ConvertEncodingFilter extends \php_user_filter
      */
     protected static ?array $mbListEncodings    = null;
 
+    /**
+     * @var null|string エンコーディング検出に失敗した場合の代替変換元エンコーディング
+     */
+    protected static ?string $defaultSubstituteFromEncoding   = null;
+
     // ----------------------------------------------
     // Shift_JIS特化設定
     // ----------------------------------------------
@@ -258,6 +263,11 @@ class ConvertEncodingFilter extends \php_user_filter
      * @var bool 変換元文字列に対してエンコーディング検出を行う場合はtrue
      */
     protected bool $isDetectFromEncoding     = false;
+
+    /**
+     * @var null|string エンコーディング検出に失敗した場合の代替変換元エンコーディング
+     */
+    protected ?string $substituteFromEncoding   = null;
 
     // ==============================================
     // static method
@@ -461,6 +471,24 @@ class ConvertEncodingFilter extends \php_user_filter
     }
 
     /**
+     * システムデフォルトのエンコーディング検出失敗時代替変換元エンコーディングを変更・取得します。
+     *
+     * @param  null|string システムデフォルトのエンコーディング検出失敗時代替変換元エンコーディング
+     * @return null|string 変更前のシステムデフォルトのエンコーディング検出失敗時代替変換元エンコーディング
+     */
+    public static function defaultSubstituteFromEncoding(?string $default_substitute_from_encoding = null): ?string
+    {
+        if ($default_substitute_from_encoding === null && \func_num_args() === 0) {
+            return static::$defaultSubstituteFromEncoding;
+        }
+
+        $before_default_substitute_from_encoding    = static::$defaultSubstituteFromEncoding;
+        static::$defaultSubstituteFromEncoding      = $default_substitute_from_encoding;
+
+        return $before_default_substitute_from_encoding;
+    }
+
+    /**
      * memory_limitの単位をintに変換します。
      *
      * @param  int|string $memory_limit バイト値
@@ -608,16 +636,23 @@ class ConvertEncodingFilter extends \php_user_filter
         // ==============================================
         // フィルタオプションの確定
         // ==============================================
-        $filter_option_part = \substr($this->filtername, $option_separate_position + 1);
+        $filter_option_part = \explode(':', \substr($this->filtername, $option_separate_position + 1), 3);
 
-        if (false === $parameter_separate_position = \strpos($filter_option_part, ':')) {
-            // to encodingがない場合
-            $to_encoding    = $filter_option_part;
-            $from_encoding  = static::FROM_ENCODING_DEFAULT;
-        } else {
+        if (isset($filter_option_part[2])) {
+            // substitute_from_encodingがある場合
+            $to_encoding               = $filter_option_part[0];
+            $from_encoding             = $filter_option_part[1];
+            $substitute_from_encoding  = $filter_option_part[2];
+        } elseif (isset($filter_option_part[1])) {
             // to encoding, from encodingが共にある場合
-            $to_encoding    = \substr($filter_option_part, 0, $parameter_separate_position);
-            $from_encoding  = \substr($filter_option_part, $parameter_separate_position + 1);
+            $to_encoding               = $filter_option_part[0];
+            $from_encoding             = $filter_option_part[1];
+            $substitute_from_encoding  = null;
+        } else {
+            // to encodingがない場合
+            $to_encoding               = $filter_option_part[0] ?? null;
+            $from_encoding             = static::FROM_ENCODING_DEFAULT;
+            $substitute_from_encoding  = null;
         }
 
         if (\version_compare(\PHP_VERSION, '8.1')) {
@@ -645,11 +680,22 @@ class ConvertEncodingFilter extends \php_user_filter
             throw new \Exception(\sprintf('変換前後のエンコーディング名が同じです。to_encoding:%s, from_encoding:%s', static::$availableEncodingNameCache['to'][$to_encoding], static::$availableEncodingNameCache['from'][$from_encoding]));
         }
 
+        if ($substitute_from_encoding !== null) {
+            if (!isset(static::$availableEncodingNameCache['from'][$substitute_from_encoding])) {
+                throw new \Exception(\sprintf('エンコーディング検出に失敗した場合の代替変換元エンコーディング名が無効です。substitute_from_encoding:%s', $substitute_from_encoding));
+            }
+
+            if (static::$availableEncodingNameCache['to'][$to_encoding] === static::$availableEncodingNameCache['from'][$substitute_from_encoding]) {
+                throw new \Exception(\sprintf('エンコーディング検出に失敗した場合の代替時の変換前後のエンコーディング名が同じです。to_encoding:%s, substitute_from_encoding:%s', static::$availableEncodingNameCache['to'][$to_encoding], static::$availableEncodingNameCache['from'][$substitute_from_encoding]));
+            }
+        }
+
         // ==============================================
         // プロパティ初期化
         // ==============================================
-        $this->toEncoding   = static::$availableEncodingNameCache['to'][$to_encoding];
-        $this->fromEncoding = static::$availableEncodingNameCache['from'][$from_encoding];
+        $this->toEncoding               = static::$availableEncodingNameCache['to'][$to_encoding];
+        $this->fromEncoding             = static::$availableEncodingNameCache['from'][$from_encoding];
+        $this->substituteFromEncoding   = $substitute_from_encoding === null ? $substitute_from_encoding : static::$availableEncodingNameCache['from'][$substitute_from_encoding];
 
         $this->isFromEncodingSjis       = \in_array($this->fromEncoding, static::CONSIDER_SHIFT_JIS_ENCODING_NAMES, true);
         $this->isDetectFromEncoding     = isset(static::DETECT_FROM_ENCODING_MAP[$this->fromEncoding]);
@@ -705,7 +751,10 @@ class ConvertEncodingFilter extends \php_user_filter
                 $from_encoding = \mb_detect_encoding($data, static::$detectOrder, true);
 
                 if ($from_encoding === false) {
-                    throw new \Exception(\sprintf('文字エンコーディング検出に失敗しました。対象:%s', $data));
+                    if ($this->substituteFromEncoding === null) {
+                        throw new \Exception(\sprintf('文字エンコーディング検出に失敗しました。対象:%s', \bin2hex($data)));
+                    }
+                    $from_encoding = $this->substituteFromEncoding;
                 }
 
                 $is_from_encoding_sjis  = \in_array($from_encoding, static::CONSIDER_SHIFT_JIS_ENCODING_NAMES, true);
