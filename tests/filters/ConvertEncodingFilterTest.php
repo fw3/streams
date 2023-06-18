@@ -41,6 +41,11 @@ class ConvertEncodingFilterTest extends TestCase
     protected const LOCALE_FOR_WINDOWS    = 'locale_for_windows';
 
     /**
+     * @var string 実行環境吸収用ラベル：mac向け
+     */
+    protected const LOCALE_FOR_MAC  = 'locale_for_mac';
+
+    /**
      * @var string 実行環境吸収用ラベル：Windows以外向け
      */
     protected const LOCALE_FOR_OTHER      = 'locale_for_other';
@@ -54,10 +59,15 @@ class ConvertEncodingFilterTest extends TestCase
             'C',
             'Japanese_Japan.20932',
         ],
-        self::LOCALE_FOR_OTHER      => [
-            'ja_JP.ujis',
-            'C',
+        self::LOCALE_FOR_MAC    => [
+            'ja_JP.eucJP',
+            'ja_JP.UTF-8',
+            'ja_JP.SJIS',
+        ],
+        self::LOCALE_FOR_OTHER  => [
             'ja_JP.eucjp',
+            'C',
+            'ja_JP.ujis',
         ],
     ];
 
@@ -615,7 +625,23 @@ class ConvertEncodingFilterTest extends TestCase
     {
         $this->systemLocale                 = ConvertEncodingFilter::startChangeLocale();
         $this->systemSubstituteCharacter    = ConvertEncodingFilter::startChangeSubstituteCharacter();
-        $this->localeList                   = static::LOCALE_MAP[\PHP_OS_FAMILY !== 'Windows' ? static::LOCALE_FOR_OTHER : static::LOCALE_FOR_WINDOWS];
+
+        switch (\PHP_OS_FAMILY) {
+            case 'Windows':
+                $locale_label   = static::LOCALE_FOR_WINDOWS;
+
+                break;
+            case 'Darwin':
+                $locale_label   = static::LOCALE_FOR_MAC;
+
+                break;
+            default:
+                $locale_label   = static::LOCALE_FOR_OTHER;
+
+                break;
+        }
+
+        $this->localeList   = static::LOCALE_MAP[$locale_label];
 
         ConvertEncodingFilter::detectOrder(ConvertEncodingFilter::DETECT_ORDER_DEFAULT);
 

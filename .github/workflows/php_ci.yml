@@ -54,10 +54,10 @@ jobs:
     strategy:
      fail-fast: false
      matrix:
-      os: [ubuntu-latest, windows-latest]
+      os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - name: ja_JP.UTF-8
+    - name: Locale install ja_JP.UTF-8
       run: |
           sudo apt install locales-all language-pack-ja
           sudo locale-gen
