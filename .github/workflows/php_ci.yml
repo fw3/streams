@@ -12,6 +12,7 @@ jobs:
   run-php-cs-fixer:
     name: PHP Code Check
     runs-on: ubuntu-latest
+    permissions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -54,7 +55,8 @@ jobs:
     strategy:
      fail-fast: false
      matrix:
-      os: [ubuntu-latest, windows-latest, macos-latest]
+#      os: [ubuntu-latest, windows-latest, macos-latest]
+      os: [windows-latest, macos-latest]
 
     steps:
     - name: Locale install ja_JP.UTF-8

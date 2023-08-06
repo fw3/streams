@@ -232,7 +232,7 @@ return (new PhpCsFixer\Config())
     //     'no_binary_string', // @MEMO バイナリ文字列が実装されたタイミングで判断したい
     'no_blank_lines_after_class_opening'                => true,
     'no_blank_lines_after_phpdoc'                       => true,
-    'no_blank_lines_before_namespace'                   => false,
+    //    'no_blank_lines_before_namespace'                   => false,
     'no_break_comment'                                  => true,
     'no_closing_tag'                                    => true,
     'no_empty_comment'                                  => true,
@@ -273,7 +273,7 @@ return (new PhpCsFixer\Config())
     'no_trailing_whitespace_in_string'                  => true,
     'no_unneeded_control_parentheses'                   => true,
     'no_unneeded_curly_braces'                          => true,
-    //     'no_unneeded_final_method', // PHP7.2以降併せなので@MEMO 明示的なデフォルト挙動
+    //     'no_unneeded_final_method', // @MEMO 明示的なデフォルト挙動
     'no_unneeded_import_alias'                          => true,
     'no_unreachable_default_argument_value'             => false,
     'no_unset_cast'                                     => true,
@@ -506,7 +506,7 @@ return (new PhpCsFixer\Config())
     'simplified_if_return'                              => false,   // @MEMO boolキャストを付与するケースはNGなため
     'simplified_null_return'                            => false,   // @MEMO voidとnullは明確に異なる
     'single_blank_line_at_eof'                          => true,
-    'single_blank_line_before_namespace'                => true,
+    //    'single_blank_line_before_namespace'                => true,
     'single_class_element_per_statement'                => [
         'elements'  => [
             'const',
