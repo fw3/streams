@@ -378,7 +378,7 @@ class StreamFilterSpecEntity
     public function write(?array $write = null)
     {
         if (\func_num_args() === 0) {
-            return $write;
+            return $this->write;
         }
         $this->write    = [];
 
@@ -402,7 +402,7 @@ class StreamFilterSpecEntity
     public function read(?array $read = null)
     {
         if (\func_num_args() === 0) {
-            return $read;
+            return $this->read;
         }
         $this->read = [];
 
@@ -426,7 +426,7 @@ class StreamFilterSpecEntity
     public function both(?array $both = null)
     {
         if (\func_num_args() === 0) {
-            return $both;
+            return $this->both;
         }
         $this->both = [];
 
