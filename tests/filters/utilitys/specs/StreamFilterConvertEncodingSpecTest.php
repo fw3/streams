@@ -140,38 +140,38 @@ class StreamFilterConvertEncodingSpecTest extends TestCase
      */
     public function resourceBuild(): void
     {
-        $this->assertSame('php://filter/resource=test.csv', StreamFilterSpecEntity::factory([
+        $this->assertSame('test.csv', StreamFilterSpecEntity::factory([
             'resource' => 'test.csv',
         ])->build());
 
-        $this->assertSame('php://filter/resource=test.csv', StreamFilterSpecEntity::factory([
+        $this->assertSame('test.csv', StreamFilterSpecEntity::factory([
             'resource' => ['', 'test.csv'],
         ])->build());
 
-        $this->assertSame('php://filter/resource=php://stdin', StreamFilterSpecEntity::factory([
+        $this->assertSame('php://stdin', StreamFilterSpecEntity::factory([
             'resource' => 'php://stdin',
         ])->build());
 
-        $this->assertSame('php://filter/resource=zip://hoge.zip#fuga.csv', StreamFilterSpecEntity::factory([
+        $this->assertSame('zip://hoge.zip#fuga.csv', StreamFilterSpecEntity::factory([
             'resource' => ['zip://', 'hoge.zip', 'fuga.csv'],
         ])->build());
 
-        $this->assertSame('php://filter/resource=zip://hoge.zip#fuga.csv', StreamFilterSpecEntity::factory([
+        $this->assertSame('zip://hoge.zip#fuga.csv', StreamFilterSpecEntity::factory([
             'resource' => 'zip://hoge.zip#fuga.csv',
         ])->build());
 
-        $this->assertSame('php://filter/resource=test.csv', StreamFilterSpecEntity::factory()->resource('test.csv')->build());
+        $this->assertSame('test.csv', StreamFilterSpecEntity::factory()->resource('test.csv')->build());
 
-        $this->assertSame('php://filter/resource=zip://hoge.zip#fuga.csv', StreamFilterSpecEntity::factory()->resource('zip://hoge.zip#fuga.csv')->build());
+        $this->assertSame('zip://hoge.zip#fuga.csv', StreamFilterSpecEntity::factory()->resource('zip://hoge.zip#fuga.csv')->build());
 
-        $this->assertSame('php://filter/resource=test.csv', StreamFilterSpecEntity::factory()->resource(FileResourceSpec::factory('test.csv'))->build());
+        $this->assertSame('test.csv', StreamFilterSpecEntity::factory()->resource(FileResourceSpec::factory('test.csv'))->build());
 
-        $this->assertSame('php://filter/resource=test.csv', StreamFilterSpecEntity::factory()->resourceFile('test.csv')->build());
+        $this->assertSame('test.csv', StreamFilterSpecEntity::factory()->resourceFile('test.csv')->build());
 
-        $this->assertSame('php://filter/resource=php://stdin', StreamFilterSpecEntity::factory()->resourceStdin()->build());
+        $this->assertSame('php://stdin', StreamFilterSpecEntity::factory()->resourceStdin()->build());
 
-        $this->assertSame('php://filter/resource=zip://hoge.zip#fuga.csv', StreamFilterSpecEntity::factory()->resourceRaw('zip://hoge.zip#fuga.csv')->build());
+        $this->assertSame('zip://hoge.zip#fuga.csv', StreamFilterSpecEntity::factory()->resourceRaw('zip://hoge.zip#fuga.csv')->build());
 
-        $this->assertSame('php://filter/resource=zip://hoge.zip#fuga.csv', StreamFilterSpecEntity::factory()->resourceZip('hoge.zip', 'fuga.csv')->build());
+        $this->assertSame('zip://hoge.zip#fuga.csv', StreamFilterSpecEntity::factory()->resourceZip('hoge.zip', 'fuga.csv')->build());
     }
 }

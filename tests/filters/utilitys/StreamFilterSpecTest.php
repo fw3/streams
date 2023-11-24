@@ -58,9 +58,11 @@ class StreamFilterSpecTest extends TestCase
         $streamFilterConvertEncodingSpec    = StreamFilterConvertEncodingSpec::factory();
         $streamFilterConvertLinefeedSpec    = StreamFilterConvertLinefeedSpec::factory();
 
+        // ==============================================
         $this->assertEquals($streamFilterSpec->with(), $streamFilterSpec);
         $this->assertNotSame($streamFilterSpec->with(), $streamFilterSpec);
 
+        // ==============================================
         if (\version_compare(\PHP_VERSION, '8.1')) {
             $this->assertSame('php://filter/write=convert.encoding.CP932:default', $streamFilterSpec->with()->appendWriteChain($streamFilterConvertEncodingSpec->with()->setupForSjisOut())->build());
         } else {
@@ -72,12 +74,14 @@ class StreamFilterSpecTest extends TestCase
         $this->assertSame('php://filter/write=convert.linefeed.LF:ALL', $streamFilterSpec->with()->appendWriteChain($streamFilterConvertLinefeedSpec->with()->setupForUnix())->build());
         $this->assertSame('php://filter/write=convert.linefeed.CRLF:ALL', $streamFilterSpec->with()->appendWriteChain($streamFilterConvertLinefeedSpec->with()->setupForWindows())->build());
 
+        // ==============================================
         $this->assertSame('convert.encoding.CP932:auto', StreamFilterConvertEncodingSpec::toSjisWin()->fromAuto()->build());
         $this->assertSame('convert.encoding.CP932:auto:UTF-8', StreamFilterConvertEncodingSpec::toSjisWin()->fromAuto('UTF-8')->build());
 
         $this->assertSame('convert.encoding.CP932:auto', StreamFilterConvertEncodingSpec::fromAuto()->toSjisWin()->build());
         $this->assertSame('convert.encoding.CP932:auto:UTF-8', StreamFilterConvertEncodingSpec::fromAuto('UTF-8')->toSjisWin()->build());
 
+        // ==============================================
         $this->assertSame('php://filter/write=convert.encoding.CP932:auto/resource=php://memory', StreamFilterSpec::resourceMemory()->write([
             StreamFilterConvertEncodingSpec::toSjisWin()->fromAuto(),
         ])->build());
@@ -93,6 +97,37 @@ class StreamFilterSpecTest extends TestCase
         $this->assertSame('php://filter/read=convert.encoding.CP932:auto:UTF-8/resource=php://memory', StreamFilterSpec::resourceMemory()->read([
             StreamFilterConvertEncodingSpec::toSjisWin()->fromAuto('UTF-8'),
         ])->build());
+
+        $this->assertSame(\sprintf('php://filter/read=convert.encoding.CP932:auto:UTF-8/resource=zip://%s#hoge.txt', __FILE__), StreamFilterSpec::resourceZip(__FILE__, 'hoge.txt')->read([
+            StreamFilterConvertEncodingSpec::toSjisWin()->fromAuto('UTF-8'),
+        ])->build());
+
+        // ==============================================
+        $this->assertSame(__FILE__, StreamFilterSpec::resource(__FILE__)->build());
+
+        $this->assertSame('zip://hoge.zip#huga.csv', StreamFilterSpec::resource('zip://hoge.zip#huga.csv')->build());
+
+        $this->assertSame(__FILE__, StreamFilterSpec::resource(FileResourceSpec::factory(__FILE__))->build());
+
+        $this->assertSame(__FILE__, StreamFilterSpec::resourceFile(__FILE__)->build());
+
+        $this->assertSame('php://stdin', StreamFilterSpec::resourceStdin()->build());
+
+        $this->assertSame('php://stdout', StreamFilterSpec::resourceStdout()->build());
+
+        $this->assertSame('php://input', StreamFilterSpec::resourceInput()->build());
+
+        $this->assertSame('php://output', StreamFilterSpec::resourceOutput()->build());
+
+        $this->assertSame('php://fd', StreamFilterSpec::resourceFd()->build());
+
+        $this->assertSame('php://memory', StreamFilterSpec::resourceMemory()->build());
+
+        $this->assertSame('php://temp', StreamFilterSpec::resourceTemp()->build());
+
+        $this->assertSame('zip://hoge.zip#huga.csv', StreamFilterSpec::resourceRaw('zip://hoge.zip#huga.csv')->build());
+
+        $this->assertSame(\sprintf('zip://%s#hoge.txt', __FILE__), StreamFilterSpec::resourceZip(__FILE__, 'hoge.txt')->build());
     }
 
     /**
