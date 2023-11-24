@@ -628,6 +628,10 @@ class StreamFilterSpecEntity
             $parameters[]   = $both_filter;
         }
 
+        if (\count($parameters) === 1) {
+            return $this->resource->build();
+        }
+
         if ('' !== ($resource = $this->buildResource())) {
             $parameters[]   = $resource;
         }
