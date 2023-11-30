@@ -401,11 +401,14 @@ $result = StreamFilterSpec::decorateForCsv(function () use ($path_to_csv) {
         StreamFilterConvertEncodingSpec::toUtf8()->fromSjisWin(),
     ]);
 
-    // UTF-8としてCSV読み込みを行う（\SplFileObjectでも使用できます。）
+    // UTF-8としてCSV読み込みを行う（\fopenでも使用できます。）
     $rows       = [];
     $csvFile    = new \SplFileObject($spec->build(), 'r+b');
     $csvFile->setFlags(\SplFileObject::READ_CSV);
-    foreach ($csvFile as $row) {
+
+    // ZIPストリームの場合、rewind出来ないためforeachを使用できません。
+    // そのため、次の例ではforを利用しています。
+    for (;\is_array($row = $csvFile->fgetcsv());) {
         $rows[] = $row;
     }
 
