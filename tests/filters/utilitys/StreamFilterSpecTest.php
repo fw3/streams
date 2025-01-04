@@ -21,23 +21,24 @@ declare(strict_types=1);
 
 namespace Tests\streams\filters\utilitys;
 
+use PHPUnit\Framework\TestCase;
 use fw3\streams\filters\ConvertEncodingFilter;
-use fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity;
-use fw3\streams\filters\utilitys\specs\entitys\resources\FileResourceSpec;
-use fw3\streams\filters\utilitys\specs\entitys\resources\PhpFdResourceSpec;
-use fw3\streams\filters\utilitys\specs\entitys\resources\PhpInputResourceSpec;
-use fw3\streams\filters\utilitys\specs\entitys\resources\PhpMemoryResourceSpec;
-use fw3\streams\filters\utilitys\specs\entitys\resources\PhpOutputResourceSpec;
-use fw3\streams\filters\utilitys\specs\entitys\resources\PhpStdinResourceSpec;
-use fw3\streams\filters\utilitys\specs\entitys\resources\PhpStdoutResourceSpec;
-use fw3\streams\filters\utilitys\specs\entitys\resources\PhpTempResourceSpec;
-use fw3\streams\filters\utilitys\specs\entitys\resources\RawResourceSpec;
-use fw3\streams\filters\utilitys\specs\entitys\resources\ZipResourceSpec;
-use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
-use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
 use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\tests\streams\traits\StreamFilterTestTrait;
-use PHPUnit\Framework\TestCase;
+use fw3\tests\streams\test_utilitys\FgetCsvPolyfill;
+use fw3\streams\filters\utilitys\entitys\StreamFilterSpecEntity;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\RawResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\ZipResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\FileResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpFdResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpTempResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpInputResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpStdinResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpMemoryResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpOutputResourceSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\PhpStdoutResourceSpec;
 
 /**
  * ストリームフィルタスペックのテスト
@@ -185,7 +186,7 @@ class StreamFilterSpecTest extends TestCase
 
             // 書き込み
             foreach ($data as $datum) {
-                \fputcsv($fp, $datum);
+                \fputcsv($fp, $datum, ',', '"', FgetCsvPolyfill::FGETCSV_ESCAPE);
             }
 
             // 読み込み
@@ -193,7 +194,7 @@ class StreamFilterSpecTest extends TestCase
 
             $rows   = [];
 
-            for (;($row = \fgetcsv($fp, 1024)) !== false;$rows[] = $row);
+            for (;($row = \fgetcsv($fp, 1024, ',', '"', FgetCsvPolyfill::FGETCSV_ESCAPE)) !== false;$rows[] = $row);
 
             \fclose($fp);
 
@@ -231,7 +232,7 @@ class StreamFilterSpecTest extends TestCase
 
             // 書き込み
             foreach ($data as $datum) {
-                \fputcsv($fp, $datum);
+                \fputcsv($fp, $datum, ',', '"', FgetCsvPolyfill::FGETCSV_ESCAPE);
             }
 
             // 読み込み
@@ -239,7 +240,7 @@ class StreamFilterSpecTest extends TestCase
 
             $rows   = [];
 
-            for (;($row = \fgetcsv($fp, 1024)) !== false;$rows[] = $row);
+            for (;($row = \fgetcsv($fp, 1024, ',', '"', FgetCsvPolyfill::FGETCSV_ESCAPE)) !== false;$rows[] = $row);
 
             \fclose($fp);
 
@@ -277,7 +278,7 @@ class StreamFilterSpecTest extends TestCase
 
             // 書き込み
             foreach ($data as $datum) {
-                \fputcsv($fp, $datum);
+                \fputcsv($fp, $datum, ',', '"', FgetCsvPolyfill::FGETCSV_ESCAPE);
             }
 
             // 読み込み
@@ -285,7 +286,7 @@ class StreamFilterSpecTest extends TestCase
 
             $rows   = [];
 
-            for (;($row = \fgetcsv($fp, 1024)) !== false;$rows[] = $row);
+            for (;($row = \fgetcsv($fp, 1024, ',', '"', FgetCsvPolyfill::FGETCSV_ESCAPE)) !== false;$rows[] = $row);
 
             \fclose($fp);
 
@@ -323,7 +324,7 @@ class StreamFilterSpecTest extends TestCase
 
             // 書き込み
             foreach ($data as $datum) {
-                \fputcsv($fp, $datum);
+                \fputcsv($fp, $datum, ',', '"', FgetCsvPolyfill::FGETCSV_ESCAPE);
             }
 
             // 読み込み
@@ -331,7 +332,7 @@ class StreamFilterSpecTest extends TestCase
 
             $rows   = [];
 
-            for (;($row = \fgetcsv($fp, 1024)) !== false;$rows[] = $row);
+            for (;($row = \fgetcsv($fp, 1024, ',', '"', FgetCsvPolyfill::FGETCSV_ESCAPE)) !== false;$rows[] = $row);
 
             \fclose($fp);
 
@@ -377,7 +378,7 @@ class StreamFilterSpecTest extends TestCase
 
                 $rows   = [];
 
-                for (;($row = \fgetcsv($fp, 1024)) !== false;$rows[] = $row);
+                for (;($row = \fgetcsv($fp, 1024, ',', '"', FgetCsvPolyfill::FGETCSV_ESCAPE)) !== false;$rows[] = $row);
 
                 \fclose($fp);
 
@@ -403,7 +404,7 @@ class StreamFilterSpecTest extends TestCase
         $this->assertInstanceOf(FileResourceSpec::class, $streamFilterSpecEntity->resource());
 
         $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resource('zip://hoge.zip#huga.csv'));
-        $this->assertInstanceOf(RawResourceSpec::class, $streamFilterSpecEntity->resource());
+        $this->assertInstanceOf(FileResourceSpec::class, $streamFilterSpecEntity->resource());
 
         $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpec::resource(FileResourceSpec::factory(__FILE__)));
         $this->assertInstanceOf(FileResourceSpec::class, $streamFilterSpecEntity->resource());

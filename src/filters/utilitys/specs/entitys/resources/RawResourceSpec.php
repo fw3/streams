@@ -39,7 +39,7 @@ class RawResourceSpec implements ResourceSpecInterface
     /**
      * @var string リソース文字列
      */
-    protected string $resource;
+    protected $resource;
 
     /**
      * リソースタイプを返します。

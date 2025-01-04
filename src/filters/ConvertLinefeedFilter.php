@@ -94,17 +94,17 @@ class ConvertLinefeedFilter extends \php_user_filter
     /**
      * @var null|string 変換先の改行コード
      */
-    protected ?string $toLinefeed       = null;
+    protected $toLinefeed       = null;
 
     /**
      * @var null|string 変換先の改行コードの文字列表現
      */
-    protected ?string $toStrLinefeed    = null;
+    protected $toStrLinefeed    = null;
 
     /**
      * @var null|string 変換元の改行コードの文字列表現
      */
-    protected ?string $fromStrLinefeed  = null;
+    protected $fromStrLinefeed  = null;
 
     // ==============================================
     // method
@@ -185,7 +185,8 @@ class ConvertLinefeedFilter extends \php_user_filter
      * @memo 引数$consumedの型はPHP Versionによって定義があるとエラーになるケースがあるため、doc comment上でも定義しない。
      *       これはPHP CS Fixerのphpdoc_to_param_typeルールでメソッド定義に自動適用される事を防ぐためでもある。
      */
-    public function filter($in, $out, &$consumed, bool $closing): int
+    #[\ReturnTypeWillChange]
+    public function filter($in, $out, &$consumed, $closing)
     {
         // ==============================================
         // 主処理

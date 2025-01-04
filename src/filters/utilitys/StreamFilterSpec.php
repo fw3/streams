@@ -352,7 +352,7 @@ abstract class StreamFilterSpec
      * @param  null|string $substitute_character 文字コードが無効または存在しない場合の代替文字
      * @return mixed       $callbackの返り値
      */
-    public static function decorateForCsv(callable $callback, ?string $substitute_character = null, ?array $detect_order = null, ?string $locale = null): mixed
+    public static function decorateForCsv(callable $callback, ?string $substitute_character = null, ?array $detect_order = null, ?string $locale = null)
     {
         // ロカールと代替文字設定を設定
         ConvertEncodingFilter::startChangeLocale($locale);

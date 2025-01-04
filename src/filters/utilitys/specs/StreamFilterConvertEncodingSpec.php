@@ -104,7 +104,7 @@ abstract class StreamFilterConvertEncodingSpec
      * @var string フィルタ名
      * @staticvar
      */
-    protected static string $filterName    = StreamFilterConvertEncodingSpecEntity::DEFAULT_FILTER_NAME;
+    protected static $filterName    = StreamFilterConvertEncodingSpecEntity::DEFAULT_FILTER_NAME;
 
     // ==============================================
     // static method

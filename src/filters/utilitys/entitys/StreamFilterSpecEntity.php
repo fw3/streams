@@ -144,22 +144,22 @@ class StreamFilterSpecEntity
     /**
      * @var null|ResourceSpecInterface フィルタの対象となるリソース
      */
-    protected ?ResourceSpecInterface $resource = null;
+    protected $resource = null;
 
     /**
      * @var array 書き込みチェーンに適用するフィルタのリスト
      */
-    protected array $write    = [];
+    protected $write    = [];
 
     /**
      * @var array 読み込みチェーンに適用するフィルタのリスト
      */
-    protected array $read     = [];
+    protected $read     = [];
 
     /**
      * @var array 書き込みチェーン、読み込みチェーン双方に適用するフィルタのリスト
      */
-    protected array $both     = [];
+    protected $both     = [];
 
     // ==============================================
     // static method
@@ -251,11 +251,11 @@ class StreamFilterSpecEntity
         }
 
         if (!(
-            \str_starts_with($resource, 'http://')
-            || \str_starts_with($resource, 'https://')
-            || \str_starts_with($resource, 'ftp://')
-            || \str_starts_with($resource, 'ftps://')
-        ) && \str_contains($resource, '://')) {
+            \strpos($resource, 'http://') === 0
+             || \strpos($resource, 'https://') === 0
+             || \strpos($resource, 'ftp://') === 0
+             || \strpos($resource, 'ftps://') === 0
+        ) && \strpos($resource, '://') === 0) {
             $this->resource = RawResourceSpec::factory($resource);
 
             return $this;

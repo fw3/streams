@@ -21,11 +21,14 @@ declare(strict_types=1);
 
 namespace fw3\tests\streams\filters;
 
+use PHPUnit\Framework\TestCase;
 use fw3\streams\filters\ConvertEncodingFilter;
-use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
 use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\tests\streams\traits\StreamFilterTestTrait;
-use PHPUnit\Framework\TestCase;
+use fw3\tests\streams\test_utilitys\FgetCsvPolyfill;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
+use fw3\streams\utilitys\stream_filter_event\events\ConvertEncodingEvent;
+use fw3\streams\utilitys\stream_filter_event\StreamFilterEventAggregatorContainer;
 
 /**
  * エンコーディングを変換するストリームフィルタクラスのテスト
@@ -119,7 +122,7 @@ class ConvertEncodingFilterTest extends TestCase
     /**
      * @var string システムバックアップ：ロケール
      */
-    protected string $systemLocale  = '';
+    protected $systemLocale  = '';
 
     /**
      * @var int|string システムバックアップ：代替文字
@@ -129,7 +132,7 @@ class ConvertEncodingFilterTest extends TestCase
     /**
      * @var null|array スタック検証用ロカールリスト
      */
-    protected ?array $localeList    = null;
+    protected $localeList   = null;
 
     /**
      * フィルタ名テスト
@@ -576,6 +579,43 @@ class ConvertEncodingFilterTest extends TestCase
         $stream_wrapper = [StreamFilterConvertEncodingSpec::toUtf8()->fromEucjpWin()];
         $this->assertWriteStreamFilterNotSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'SJIS-win', 'UTF-8'), $stream_wrapper);
         $this->assertWriteStreamFilterSame($expected_test_data_simple_text1, \mb_convert_encoding(static::TEST_DATA_SIMPLE_TEXT1, 'eucJP-win', 'UTF-8'), $stream_wrapper);
+    }
+
+    /**
+     * ケース変換に失敗し、失敗した文字列を検出するテスト
+     *
+     * @test
+     */
+    public function hasInvalidChars(): void
+    {
+        $default_substitute_from_encoding       = ConvertEncodingFilter::defaultSubstituteFromEncoding(
+            ConvertEncodingFilter::SUBSTITUTE_CHARACTER_ENTITY
+        );
+        $default_enabled_extract_illegal_chars  = ConvertEncodingFilter::defaultEnabledExtractIllegalChars(true);
+
+        $csv_text   =   "UTF-8から次の4文字♥、♠、♦、♣はSJISに変換できない。";
+
+        $fp = \fopen(StreamFilterSpec::resourceTemp()->read([StreamFilterConvertEncodingSpec::toSjisWin()->fromUtf8()])->build(), 'ab');
+
+        @\fwrite($fp, $csv_text);
+
+        @\rewind($fp);
+
+        $actual = [];
+
+        for (;($row = \fgetcsv($fp, 1024, ',', '"', FgetCsvPolyfill::FGETCSV_ESCAPE)) !== false;$actual[] = $row);
+
+        @\fclose($fp);
+
+        ConvertEncodingFilter::defaultSubstituteFromEncoding($default_substitute_from_encoding);
+        ConvertEncodingFilter::defaultEnabledExtractIllegalChars($default_enabled_extract_illegal_chars);
+
+        $events = StreamFilterEventAggregatorContainer::get()->getEventsByType(ConvertEncodingEvent::class);
+        $actual = $events[0];
+
+        $this->assertSame(ConvertEncodingEvent::class, $actual->getType());
+        $this->assertSame('エンコーディング変換に失敗した文字があります。', $actual->getMessage());
+        $this->assertSame(['invalid_chars' => ['♥', '♠', '♦', '♣']], $actual->getValues());
     }
 
     /**

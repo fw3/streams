@@ -44,7 +44,7 @@ class ZipResourceSpec implements ResourceSpecInterface
     /**
      * @var string ZIPファイル内ファイルパス
      */
-    protected string $pathInArchive;
+    protected $pathInArchive;
 
     /**
      * @var null|string|\Stringable 暗号化解除パスワード
@@ -109,7 +109,7 @@ class ZipResourceSpec implements ResourceSpecInterface
             '%s%s#%s',
             self::RESOURCE_TYPE,
             $this->zipFilePath instanceof \SplFileInfo ? $this->zipFilePath->getPathname() : $this->zipFilePath,
-            $this->pathInArchive,
+            $this->pathInArchive
         );
     }
 

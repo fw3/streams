@@ -91,13 +91,13 @@ class StreamFilterConvertEncodingSpecTest extends TestCase
         $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpecEntity::factory([
             'resource' => 'zip://hoge.zip#huga.csv',
         ]));
-        $this->assertInstanceOf(RawResourceSpec::class, $streamFilterSpecEntity->resource());
+        $this->assertInstanceOf(FileResourceSpec::class, $streamFilterSpecEntity->resource());
 
         $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpecEntity::factory()->resource('test.csv'));
         $this->assertInstanceOf(FileResourceSpec::class, $streamFilterSpecEntity->resource());
 
         $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpecEntity::factory()->resource('zip://hoge.zip#huga.csv'));
-        $this->assertInstanceOf(RawResourceSpec::class, $streamFilterSpecEntity->resource());
+        $this->assertInstanceOf(FileResourceSpec::class, $streamFilterSpecEntity->resource());
 
         $this->assertInstanceOf(StreamFilterSpecEntity::class, $streamFilterSpecEntity = StreamFilterSpecEntity::factory()->resource(FileResourceSpec::factory('test.csv')));
         $this->assertInstanceOf(FileResourceSpec::class, $streamFilterSpecEntity->resource());

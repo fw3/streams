@@ -108,17 +108,17 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
     /**
      * @var string 変換後の文字エンコーディング
      */
-    protected string $toEncoding   = self::DEFAULT_TO_ENCODING;
+    protected $toEncoding   = self::DEFAULT_TO_ENCODING;
 
     /**
      * @var string 変換前の文字エンコーディング
      */
-    protected string $fromEncoding = self::DEFAULT_FROM_ENCODING;
+    protected $fromEncoding = self::DEFAULT_FROM_ENCODING;
 
     /**
      * @var null|string エンコーディング検出に失敗した場合の代替変換元エンコーディング
      */
-    protected ?string $substituteFromEncoding    = null;
+    protected $substituteFromEncoding    = null;
 
     // ==============================================
     // static method
@@ -339,7 +339,7 @@ class StreamFilterConvertEncodingSpecEntity implements StreamFilterSpecInterface
             $this->toEncoding,
             static::PARAMETER_OPTION_SEPARATOR,
             $this->fromEncoding,
-            $this->substituteFromEncoding === null ? '' : \sprintf('%s%s', static::PARAMETER_OPTION_SEPARATOR, $this->substituteFromEncoding),
+            $this->substituteFromEncoding === null ? '' : \sprintf('%s%s', static::PARAMETER_OPTION_SEPARATOR, $this->substituteFromEncoding)
         );
     }
 
