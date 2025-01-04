@@ -3,6 +3,7 @@
 Rapid Development FrameworkであるFlywheel3 のストリーム処理ライブラリです。
 
 対象となるPHPのバージョンは7.2.0以上です。
+PHP8.4.2までは動作確認済みです。
 
 過去バージョンであるPHP 5.3.3以上の環境では [fw3-for-old/streams](https://github.com/fw3-for-old/streams) を使用してください。
 
@@ -457,5 +458,76 @@ StreamFilterSpec::decorateForCsv(function () {
         \fputcsv($fp, $row);
     }
     \fclose($fp);
+});
+```
+
+#### 応用：特殊な機能：UTF-8からCP932（SJIS-win）にエンコーディング変換を行う際に、変換できなかった文字を取得する。
+
+本機能は実験的な機能です。
+
+次の二つのメソッド呼び出しを行う事で、UTF-8からCP932（SJIS-win）にエンコーディング変換を行う際に、変換できなかった文字を取得できるようにします。
+本機能では変換できなかった文字は `HTML Entity` として表現されるようになります。
+
+```php
+ConvertEncodingFilter::defaultSubstituteFromEncoding(ConvertEncodingFilter::SUBSTITUTE_CHARACTER_ENTITY);
+ConvertEncodingFilter::defaultEnabledExtractIllegalChars(true);
+```
+
+```php
+<?php
+
+use fw3\streams\filters\utilitys\StreamFilterSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
+
+//==============================================
+// 設定
+//==============================================
+$rows   = [[]]; // データ
+
+$path_to_csv    = '';   // CSVファイルのパスを設定して下さい
+
+//----------------------------------------------
+// 一括即時実行
+//----------------------------------------------
+// フィルタ登録、ロカールと代替文字の設定と実行後のリストアも包括して実行します。
+// コールバックの実行中に例外が発生してもロカールと代替文字のリストアは実行されます。
+//----------------------------------------------
+$result = StreamFilterSpec::decorateForCsv(function () use ($path_to_csv, $rows) {
+    //==============================================
+    // 書き込み
+    //==============================================
+    // 変換できなかった文字を取得できるようにする
+    $default_substitute_from_encoding       = ConvertEncodingFilter::defaultSubstituteFromEncoding(
+        ConvertEncodingFilter::SUBSTITUTE_CHARACTER_ENTITY
+    );
+    $default_enabled_extract_illegal_chars  = ConvertEncodingFilter::defaultEnabledExtractIllegalChars(
+        true
+    );
+
+    // フィルタの設定
+    $spec   = StreamFilterSpec::resource($path_to_csv)->write([
+        StreamFilterConvertEncodingSpec::toSjisWin()->fromUtf8(),
+        StreamFilterConvertLinefeedSpec::toCrLf()->fromAll(),
+    ]);
+
+    // CP932、行末の改行コードCRLFとしてCSV書き込みを行う
+    $csvFile    = new \SplFileObject($spec->build(), 'r+b');
+    foreach ($csvFile as $row) {
+        $file->fputcsv($row);
+    }
+
+    // 設定を元に戻す
+    ConvertEncodingFilter::defaultSubstituteFromEncoding($default_substitute_from_encoding);
+    ConvertEncodingFilter::defaultEnabledExtractIllegalChars($default_enabled_extract_illegal_chars);
+
+    // 変換できなかった文字列群を取得する
+    $invalid_chars_set  = [];
+
+    // 1回の変換処理ごとに1個のイベントとして記録している
+    foreach (StreamFilterEventAggregatorContainer::get()->getEventsByType(ConvertEncodingEvent::class) as $event) {
+        $values                 = $actual->getValues();
+        $invalid_chars_set[]    = $values['invalid_chars']; // 1個のイベントごとに変換できなかった文字を配列として取得する
+    }
 });
 ```

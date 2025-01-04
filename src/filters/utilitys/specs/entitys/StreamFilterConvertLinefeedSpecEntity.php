@@ -107,12 +107,12 @@ class StreamFilterConvertLinefeedSpecEntity implements StreamFilterSpecInterface
     /**
      * @var string 変換後の改行コード表現
      */
-    protected string $toLinefeed   = self::DEFAULT_TO_LINEFEED;
+    protected $toLinefeed   = self::DEFAULT_TO_LINEFEED;
 
     /**
      * @var string 変換前の改行コード表現
      */
-    protected string $fromLinefeed = self::DEFAULT_FROM_LINEFEED;
+    protected $fromLinefeed = self::DEFAULT_FROM_LINEFEED;
 
     // ==============================================
     // static method

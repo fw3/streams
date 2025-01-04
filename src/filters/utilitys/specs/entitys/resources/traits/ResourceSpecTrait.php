@@ -72,12 +72,12 @@ trait ResourceSpecTrait
         return \stream_context_create(
             \array_merge(
                 $this->getContextOptions(),
-                $add_context_options,
+                $add_context_options
             ),
             \array_merge(
                 $add_context_params,
-                $this->getContextParams(),
-            ),
+                $this->getContextParams()
+            )
         );
     }
 

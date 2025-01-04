@@ -21,14 +21,18 @@ declare(strict_types=1);
 
 namespace Tests\streams\filters;
 
+use PHPUnit\Framework\TestCase;
 use fw3\streams\filters\ConvertEncodingFilter;
 use fw3\streams\filters\ConvertLinefeedFilter;
-use fw3\streams\filters\utilitys\specs\entitys\resources\ZipResourceSpec;
-use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
-use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
 use fw3\streams\filters\utilitys\StreamFilterSpec;
 use fw3\tests\streams\traits\StreamFilterTestTrait;
-use PHPUnit\Framework\TestCase;
+use fw3\tests\streams\test_utilitys\FgetCsvPolyfill;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertEncodingSpec;
+use fw3\streams\filters\utilitys\specs\StreamFilterConvertLinefeedSpec;
+use fw3\streams\filters\utilitys\specs\entitys\resources\ZipResourceSpec;
+
+\define('CsvIoTest_TEST_DATA_SIMPLE_TEXT4', "\xE3\x83\x8F\xE3\x82\x9A");
+\define('CsvIoTest_TEST_EXPECTED_SIMPLE_TEXT4', \mb_convert_encoding(\mb_convert_encoding(\CsvIoTest_TEST_DATA_SIMPLE_TEXT4, 'CP932', 'UTF-8'), 'UTF-8', 'CP932'));
 
 /**
  * エンコーディングを変換するストリームフィルタクラスのテスト
@@ -59,6 +63,16 @@ class CsvIoTest extends TestCase
     protected const TEST_DATA_SIMPLE_TEXT3    = 'ソソソソん①㈱㌔髙﨑纊ソｱｲｳｴｵあいうえおabc';
 
     /**
+     * @var string テストデータ：合字
+     */
+    protected const TEST_DATA_SIMPLE_TEXT4    = CsvIoTest_TEST_DATA_SIMPLE_TEXT4;
+
+    /**
+     * @var string 期待値：合字
+     */
+    protected const TEST_EXPECTED_SIMPLE_TEXT4  = CsvIoTest_TEST_EXPECTED_SIMPLE_TEXT4;
+
+    /**
      * Windows向けCSV出力テスト
      *
      * @test
@@ -73,17 +87,17 @@ class CsvIoTest extends TestCase
         $expected   = \mb_convert_encoding(\implode(
             ConvertLinefeedFilter::CRLF,
             [
-                \implode(',', [static::TEST_DATA_SIMPLE_TEXT1, '"' . static::TEST_DATA_SIMPLE_TEXT2 . '"', static::TEST_DATA_SIMPLE_TEXT3]),
-                \implode(',', ['"' . static::TEST_DATA_SIMPLE_TEXT2 . '"', static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1]),
-                \implode(',', [static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1, '"' . static::TEST_DATA_SIMPLE_TEXT2 . '"']),
+                \implode(',', [static::TEST_DATA_SIMPLE_TEXT1, '"' . static::TEST_DATA_SIMPLE_TEXT2 . '"', static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT4]),
+                \implode(',', ['"' . static::TEST_DATA_SIMPLE_TEXT2 . '"', static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1, static::TEST_DATA_SIMPLE_TEXT4]),
+                \implode(',', [static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1, '"' . static::TEST_DATA_SIMPLE_TEXT2 . '"', static::TEST_DATA_SIMPLE_TEXT4]),
                 '',
-            ],
-        ), 'SJIS-win', 'UTF-8');
+            ]
+        ), 'CP932', 'UTF-8');
 
         $csv_data   = [
-            [static::TEST_DATA_SIMPLE_TEXT1, static::TEST_DATA_SIMPLE_TEXT2, static::TEST_DATA_SIMPLE_TEXT3],
-            [static::TEST_DATA_SIMPLE_TEXT2, static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1],
-            [static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1, static::TEST_DATA_SIMPLE_TEXT2],
+            [static::TEST_DATA_SIMPLE_TEXT1, static::TEST_DATA_SIMPLE_TEXT2, static::TEST_DATA_SIMPLE_TEXT3, static::TEST_EXPECTED_SIMPLE_TEXT4],
+            [static::TEST_DATA_SIMPLE_TEXT2, static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1, static::TEST_EXPECTED_SIMPLE_TEXT4],
+            [static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1, static::TEST_DATA_SIMPLE_TEXT2, static::TEST_EXPECTED_SIMPLE_TEXT4],
         ];
 
         $stream_chunk_size  = 1024;
@@ -115,7 +129,7 @@ class CsvIoTest extends TestCase
                 \implode(',', ['"' . static::TEST_DATA_SIMPLE_TEXT2 . '"', static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1]),
                 \implode(',', [static::TEST_DATA_SIMPLE_TEXT3, static::TEST_DATA_SIMPLE_TEXT1, '"' . static::TEST_DATA_SIMPLE_TEXT2 . '"']),
                 '',
-            ],
+            ]
         ), 'SJIS-win', 'UTF-8');
 
         $stream_chunk_size  = 1024;
@@ -150,9 +164,10 @@ class CsvIoTest extends TestCase
 
             $rows       = [];
             $csvFile    = new \SplFileObject($spec->build(), 'r+b');
+            $csvFile->setCsvControl(',', '"', FgetCsvPolyfill::FGETCSV_ESCAPE);
             $csvFile->setFlags(\SplFileObject::READ_CSV);
 
-            for ($row = $csvFile->fgetcsv();$row !== false;$row = $csvFile->fgetcsv()) {
+            for ($row = $csvFile->fgetcsv();$row !== false && $row !== null;$row = $csvFile->fgetcsv()) {
                 $rows[] = $row;
             }
 

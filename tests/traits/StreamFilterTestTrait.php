@@ -22,6 +22,7 @@ declare(strict_types=1);
 namespace fw3\tests\streams\traits;
 
 use fw3\streams\filters\utilitys\StreamFilterSpec;
+use fw3\tests\streams\test_utilitys\FgetCsvPolyfill;
 
 /**
  * ストリームフィルタテスト支援特性
@@ -114,7 +115,7 @@ trait StreamFilterTestTrait
 
         $actual = [];
 
-        for (;($row = \fgetcsv($fp, 1024)) !== false;$actual[] = $row);
+        for (;($row = \fgetcsv($fp, 1024, ',', '"', FgetCsvPolyfill::FGETCSV_ESCAPE)) !== false;$actual[] = $row);
 
         @\fclose($fp);
 

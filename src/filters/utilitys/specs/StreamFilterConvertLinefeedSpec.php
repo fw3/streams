@@ -103,7 +103,7 @@ abstract class StreamFilterConvertLinefeedSpec
      * @var string フィルタ名
      * @staticvar
      */
-    protected static string $filterName    = self::DEFAULT_FILTER_NAME;
+    protected static $filterName    = self::DEFAULT_FILTER_NAME;
 
     // ==============================================
     // static method

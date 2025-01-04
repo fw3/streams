@@ -21,6 +21,10 @@ declare(strict_types=1);
 
 namespace fw3\streams\filters;
 
+use fw3\streams\utilitys\stream_filter_event\events\ConvertEncodingEvent;
+use fw3\streams\utilitys\stream_filter_event\StreamFilterEventAggregator;
+use fw3\streams\utilitys\stream_filter_event\StreamFilterEventAggregatorContainer;
+
 /**
  * エンコーディングを変換するストリームフィルタクラスです。
  */
@@ -181,6 +185,11 @@ class ConvertEncodingFilter extends \php_user_filter
         self::SUBSTITUTE_CHARACTER_ENTITY   => self::SUBSTITUTE_CHARACTER_ENTITY,
     ];
 
+    /**
+     * @var int 文字コードが無効または存在しない場合のイリーガル文字数検出用ダミー文字列
+     */
+    public const SUBSTITUTE_DUMMY_CHARACTER = 0x0001;
+
     // ==============================================
     // static property
     // ==============================================
@@ -190,7 +199,7 @@ class ConvertEncodingFilter extends \php_user_filter
      * @var array 変更中のロカールスタック
      * @static
      */
-    protected static array $localeStack  = [];
+    protected static $localeStack  = [];
 
     // ----------------------------------------------
     // エンコーディング変換設定
@@ -199,24 +208,24 @@ class ConvertEncodingFilter extends \php_user_filter
      * @var null|array 現在の実行環境で使用可能な文字エンコーディングセットキャッシュ
      * @static
      */
-    protected static ?array $availableEncodingNameCache = null;
+    protected static $availableEncodingNameCache = null;
 
     /**
      * @var null|array 文字エンコーディング検出順
      * @static
      */
-    protected static ?array $detectOrder    = null;
+    protected static $detectOrder    = null;
 
     /**
      * @var null|array システムデフォルトの文字エンコーディング検出順キャッシュ
      * @static
      */
-    protected static ?array $mbListEncodings    = null;
+    protected static $mbListEncodings    = null;
 
     /**
      * @var null|string エンコーディング検出に失敗した場合の代替変換元エンコーディング
      */
-    protected static ?string $defaultSubstituteFromEncoding   = null;
+    protected static $defaultSubstituteFromEncoding   = null;
 
     // ----------------------------------------------
     // Shift_JIS特化設定
@@ -225,7 +234,7 @@ class ConvertEncodingFilter extends \php_user_filter
      * @var int Shift_JIS遅延判定文字列バッファサイズ
      * @staitc
      */
-    protected static int $sjisCheckDeferredBufferSize   = self::SJIS_CHECK_DEFERRED_BUFFER_SIZE_DEFAULT;
+    protected static $sjisCheckDeferredBufferSize   = self::SJIS_CHECK_DEFERRED_BUFFER_SIZE_DEFAULT;
 
     // ----------------------------------------------
     // 入力文字エンコーディングが無効、または出力文字エンコーディングに文字コードが存在しない場合の代替文字
@@ -234,7 +243,13 @@ class ConvertEncodingFilter extends \php_user_filter
      * @var array 変更中の文字コードが無効または存在しない場合の代替文字スタック
      * @static
      */
-    protected static array $substituteCharacterStack  = [];
+    protected static $substituteCharacterStack  = [];
+
+    /**
+     * @var array 変更中の文字コードが無効または存在しない場合に変換できなかった文字を抽出するかどうか
+     * @static
+     */
+    protected static $defaultEnabledExtractIllegalChars   = false;
 
     // ==============================================
     // property
@@ -242,32 +257,42 @@ class ConvertEncodingFilter extends \php_user_filter
     /**
      * @var string Shift_JIS遅延判定文字列バッファ
      */
-    protected string $sjisCheckDeferredBuffer  = '';
+    protected $sjisCheckDeferredBuffer  = '';
 
     /**
      * @var null|string 変換先のエンコーディング
      */
-    protected ?string $toEncoding   = null;
+    protected $toEncoding   = null;
 
     /**
      * @var null|string 変換元のエンコーディング
      */
-    protected ?string $fromEncoding = null;
+    protected $fromEncoding = null;
 
     /**
      * @var bool 変換元のエンコーディングがShift_JISの場合はtrue
      */
-    protected bool $isFromEncodingSjis       = false;
+    protected $isFromEncodingSjis       = false;
 
     /**
      * @var bool 変換元文字列に対してエンコーディング検出を行う場合はtrue
      */
-    protected bool $isDetectFromEncoding     = false;
+    protected $isDetectFromEncoding     = false;
 
     /**
      * @var null|string エンコーディング検出に失敗した場合の代替変換元エンコーディング
      */
-    protected ?string $substituteFromEncoding   = null;
+    protected $substituteFromEncoding   = null;
+
+    /**
+     * @var array 変更中の文字コードが無効または存在しない場合に変換できなかった文字を抽出するかどうか
+     */
+    protected $enabledExtractIllegalChars  = false;
+
+    /**
+     * @var null|StreamFilterEventAggregator ストリームフィルタインベントアグリゲータ
+     */
+    protected $streamFilterEventAggregator = null;
 
     // ==============================================
     // static method
@@ -489,6 +514,24 @@ class ConvertEncodingFilter extends \php_user_filter
     }
 
     /**
+     * システムデフォルトの変更中の文字コードが無効または存在しない場合に変換できなかった文字を抽出するかどうかを変更・取得します。
+     *
+     * @param  null|bool システムデフォルトの変更中の文字コードが無効または存在しない場合に変換できなかった文字を抽出するかどうか
+     * @return null|bool 変更前のシステムデフォルトの変更中の文字コードが無効または存在しない場合に変換できなかった文字を抽出するかどうか
+     */
+    public static function defaultEnabledExtractIllegalChars(?bool $enabled_extract_illegal_chars = null): ?bool
+    {
+        if ($enabled_extract_illegal_chars === null && \func_num_args() === 0) {
+            return static::$defaultEnabledExtractIllegalChars;
+        }
+
+        $before_enabled_extract_illegal_chars       = static::$defaultEnabledExtractIllegalChars;
+        static::$defaultEnabledExtractIllegalChars  = $enabled_extract_illegal_chars;
+
+        return $before_enabled_extract_illegal_chars;
+    }
+
+    /**
      * memory_limitの単位をintに変換します。
      *
      * @param  int|string $memory_limit バイト値
@@ -704,6 +747,12 @@ class ConvertEncodingFilter extends \php_user_filter
             static::$detectOrder  = $this->fromEncoding === static::FROM_ENCODING_DEFAULT ? (empty(static::$detectOrder) ? static::DETECT_ORDER_DEFAULT : static::$detectOrder) : \mb_detect_order();
         }
 
+        $this->enabledExtractIllegalChars   = static::$defaultEnabledExtractIllegalChars && static::SUBSTITUTE_CHARACTER_ENTITY === static::currentSubstituteCharacter();
+
+        if ($this->enabledExtractIllegalChars) {
+            $this->streamFilterEventAggregator  = StreamFilterEventAggregatorContainer::get();
+        }
+
         // ==============================================
         // 処理の終了
         // ==============================================
@@ -725,7 +774,8 @@ class ConvertEncodingFilter extends \php_user_filter
      * @memo 引数$consumedの型はPHP Versionによって定義があるとエラーになるケースがあるため、doc comment上でも定義しない。
      *       これはPHP CS Fixerのphpdoc_to_param_typeルールでメソッド定義に自動適用される事を防ぐためでもある。
      */
-    public function filter($in, $out, &$consumed, bool $closing): int
+    #[\ReturnTypeWillChange]
+    public function filter($in, $out, &$consumed, $closing)
     {
         // ==============================================
         // 初期化
@@ -737,6 +787,12 @@ class ConvertEncodingFilter extends \php_user_filter
         $is_from_encoding_sjis  = $this->isFromEncodingSjis;
 
         $sjis_check_deferred_buffer = '';
+
+        $enabled_extract_illegal_chars  = $this->enabledExtractIllegalChars;
+
+        if ($enabled_extract_illegal_chars) {
+            $streamFilterEventAggregator    = $this->streamFilterEventAggregator;
+        }
 
         // ==============================================
         // 主処理
@@ -778,6 +834,32 @@ class ConvertEncodingFilter extends \php_user_filter
             if ($data !== '') {
                 if ($this->toEncoding !== $from_encoding) {
                     $bucket->data   = \mb_convert_encoding($data, $this->toEncoding, $from_encoding);
+
+                    if ($enabled_extract_illegal_chars) {
+                        $matches        = [];
+                        $invalid_chars  = [];
+
+                        if (false !== \preg_match_all("/&#x\d+;/", $bucket->data, $matches)) {
+                            foreach ($matches[0] as $char) {
+                                $invalid_chars[] = \mb_convert_encoding($char, $from_encoding, 'HTML-ENTITIES');
+                            }
+                        }
+
+                        if (!empty($invalid_chars)) {
+                            $before_substitute_character    = \mb_substitute_character();
+
+                            \mb_substitute_character(static::SUBSTITUTE_DUMMY_CHARACTER);
+
+                            $has_invalid_chars  = false !== \preg_match_all(\sprintf('/%s/', \mb_chr(static::SUBSTITUTE_DUMMY_CHARACTER)), \mb_convert_encoding($data, $this->toEncoding, $from_encoding), $matches)
+                             && \count($invalid_chars) === \count($matches[0]);
+
+                            \mb_substitute_character($before_substitute_character);
+
+                            if ($has_invalid_chars) {
+                                $streamFilterEventAggregator->addEvent(new ConvertEncodingEvent('エンコーディング変換に失敗した文字があります。', ['invalid_chars' => $invalid_chars]));
+                            }
+                        }
+                    }
                 }
 
                 $bucket->datalen    = \strlen($bucket->data);
